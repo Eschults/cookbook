@@ -1,5 +1,6 @@
 import { computed, reactive } from 'vue'
 import { loadAppState, saveAppState } from '../services/storage.js'
+import { toBaseAmount } from '../services/units.js'
 
 const state = reactive(loadAppState())
 
@@ -22,23 +23,29 @@ export function useShoppingList() {
    * summed quantity — a snapshot-per-recipe only ever merged an ingredient
    * against itself, so the same ingredient coming from two recipes produced
    * two separate lines.
+   *
+   * Amounts are converted to a canonical unit before they are keyed, so the
+   * same ingredient measured two different ways — "500 g lait" in one recipe,
+   * "500 cL" in another — merges rather than splitting into two rows that
+   * each read in their own unit.
    */
   const shoppingList = computed(() => {
     const rows = new Map()
     for (const entry of state.menu) {
       for (const ingredient of entry.ingredients) {
-        const key = itemKey(ingredient.name, ingredient.unit)
+        const scaled = ingredient.quantity == null ? null : ingredient.quantity * entry.multiplier
+        const amount = toBaseAmount(scaled, ingredient.unit)
+        const key = itemKey(ingredient.name, amount.unit)
         if (state.excluded.includes(key)) continue
-        const quantity = ingredient.quantity == null ? null : ingredient.quantity * entry.multiplier
         const existing = rows.get(key)
         if (existing) {
-          if (quantity != null) existing.quantity = (existing.quantity ?? 0) + quantity
+          if (amount.quantity != null) existing.quantity = (existing.quantity ?? 0) + amount.quantity
         } else {
           rows.set(key, {
             id: key,
             name: ingredient.name,
-            unit: ingredient.unit,
-            quantity,
+            unit: amount.unit,
+            quantity: amount.quantity,
             checked: Boolean(state.checked[key]),
             checkedAt: state.checked[key] || null
           })

@@ -219,7 +219,7 @@ describe('ShoppingListView', () => {
     expect(view.text()).toContain('200 g')
   })
 
-  it('converts grams to kilos and centilitres to litres past the threshold', async () => {
+  it('shows a large gram figure in kilos', async () => {
     list.addRecipe(makeRecipe({
       ingredients: [
         { name: 'flour', quantity: 1200, unit: 'g', link: null, group: null, original: '1200 g flour', scalable: true },
@@ -229,7 +229,8 @@ describe('ShoppingListView', () => {
     const view = await mountView(ShoppingListView)
 
     expect(view.text()).toContain('1,2 kg')
-    expect(view.text()).toContain('1,5 L')
+    // 150 cL normalises to 1500 g, which then reads as kilos like any other.
+    expect(view.text()).toContain('1,5 kg')
   })
 
   it('follows the active locale', async () => {

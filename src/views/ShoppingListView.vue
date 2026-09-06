@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useShoppingList } from '../composables/useShoppingList.js'
 import { useLocale } from '../composables/useLocale.js'
 import { stripInline } from '../services/markdown.js'
+import { toDisplayAmount } from '../services/units.js'
 
 const { shoppingList, itemCount, totalCount, toggleItem, removeItem, clearList } = useShoppingList()
 const { t } = useI18n()
@@ -91,17 +92,6 @@ function handleRowClick(item) {
 }
 
 /**
- * Once a quantity crosses into the next unit up — a kilo of flour, a litre
- * of milk — it reads faster in that unit than as a four-digit gram count.
- */
-const NEXT_UNIT = {
-  g: { unit: 'kg', factor: 1000 },
-  mg: { unit: 'g', factor: 1000 },
-  ml: { unit: 'L', factor: 1000 },
-  cl: { unit: 'L', factor: 100 }
-}
-
-/**
  * A spoonful or a pinch is not something anyone buys by the number: "3.5
  * teaspoons of salt" is noise on a shopping list where "salt" alone is the
  * useful part. Matches "spoon", "pinch", "cuillère"/"cuillere"/"cuiller" and
@@ -115,12 +105,7 @@ const stripDiacritics = value => value.normalize('NFD').replace(/\p{Diacritic}/g
 function formatQuantity(item) {
   if (item.quantity == null) return ''
   if (UNQUANTIFIED_UNIT.test(stripDiacritics(item.unit).toLowerCase())) return ''
-  let { quantity, unit } = item
-  const conversion = NEXT_UNIT[unit.toLowerCase()]
-  if (conversion && quantity >= conversion.factor) {
-    quantity /= conversion.factor
-    unit = conversion.unit
-  }
+  const { quantity, unit } = toDisplayAmount(item.quantity, item.unit)
   const rounded = Math.round(quantity * 100) / 100
   return `${rounded.toLocaleString(locale.value)} ${unit}`.trim()
 }

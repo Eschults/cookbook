@@ -94,6 +94,28 @@ describe('addRecipe', () => {
     expect(butter[0].quantity).toBe(110)
   })
 
+  it('merges an ingredient the two recipes measure in different units', () => {
+    const list = useShoppingList()
+    // Crêpes writes milk as "500 g", Cannelés writes it as "500 cL"; both
+    // mean the same trip to the same shelf, so they belong on one row.
+    list.addRecipe(makeRecipe({
+      id: 'crepes',
+      slug: 'crepes',
+      title: 'Crêpes',
+      ingredients: [{ name: 'lait', quantity: 500, unit: 'g', link: null, group: null, original: '500 g lait', scalable: true }]
+    }), 1)
+    list.addRecipe(makeRecipe({
+      id: 'canneles',
+      slug: 'canneles',
+      title: 'Cannelés',
+      ingredients: [{ name: 'lait', quantity: 500, unit: 'cL', link: null, group: null, original: '500 cL lait', scalable: true }]
+    }), 1)
+
+    expect(list.shoppingList.value).toEqual([
+      expect.objectContaining({ name: 'lait', quantity: 5500, unit: 'g' })
+    ])
+  })
+
   it('keeps an item ticked off when the recipe is added again', () => {
     const list = useShoppingList()
     list.addRecipe(makeRecipe(), 1)
