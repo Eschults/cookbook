@@ -16,7 +16,8 @@ const tags = computed(() => [...new Set(props.recipes.flatMap(recipe => recipe.t
 const filtered = computed(() => {
   const needle = query.value.trim().toLowerCase()
   return props.recipes.filter(recipe => {
-    const matchesText = !needle || `${recipe.title} ${recipe.description} ${(recipe.tags || []).join(' ')}`.toLowerCase().includes(needle)
+    const haystack = `${recipe.title} ${recipe.description} ${(recipe.tags || []).join(' ')} ${recipe.ingredients.map(ingredient => ingredient.name).join(' ')}`
+    const matchesText = !needle || haystack.toLowerCase().includes(needle)
     const matchesTag = !tag.value || recipe.tags?.includes(tag.value)
     return matchesText && matchesTag
   })

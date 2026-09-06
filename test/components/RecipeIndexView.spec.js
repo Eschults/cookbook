@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import RecipeIndexView from '../../src/views/RecipeIndexView.vue'
 import { i18n } from '../../src/i18n/index.js'
-import { makeRecipe, mountView } from '../helpers.js'
+import { ingredient, makeRecipe, mountView } from '../helpers.js'
 
 const recipes = [
   makeRecipe({ slug: 'guac', title: 'Guacamole', tags: ['sauce', 'vegan'] }),
-  makeRecipe({ slug: 'tarte', title: 'Tarte Tatin', tags: ['dessert'], description: 'Caramelised apples.' })
+  makeRecipe({
+    slug: 'tarte',
+    title: 'Tarte Tatin',
+    tags: ['dessert'],
+    description: 'Caramelised apples.',
+    ingredients: [ingredient('apple', 6), ingredient('butter', 50, 'gram'), ingredient('sugar', 100, 'gram')]
+  })
 ]
 
 describe('RecipeIndexView', () => {
@@ -36,6 +42,14 @@ describe('RecipeIndexView', () => {
     await view.find('#recipe-search').setValue('vegan')
     expect(view.text()).toContain('Guacamole')
     expect(view.text()).not.toContain('Tarte Tatin')
+  })
+
+  it('searches the ingredient list too', async () => {
+    const view = await mountView(RecipeIndexView, { props: { recipes } })
+    await view.find('#recipe-search').setValue('butter')
+
+    expect(view.text()).toContain('Tarte Tatin')
+    expect(view.text()).not.toContain('Guacamole')
   })
 
   it('filters by tag and offers every tag once, sorted', async () => {
