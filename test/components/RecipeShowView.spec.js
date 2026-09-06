@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import RecipeShowView from '../../src/views/RecipeShowView.vue'
 import { toRecipe } from '../../src/services/github.js'
-import { makeRecipe, mountView } from '../helpers.js'
+import { ingredient, makeRecipe, mountView } from '../helpers.js'
 
 const show = (recipes, slug) =>
   mountView(RecipeShowView, { props: { recipes }, route: `/r/${slug}` })
@@ -92,7 +92,7 @@ describe('RecipeShowView', () => {
 
   it('links an ingredient that points at another recipe', async () => {
     const recipe = makeRecipe({
-      ingredients: [{ name: 'pesto', quantity: null, unit: '', link: './pesto.md', group: null, original: 'pesto', scalable: false }]
+      ingredients: [{ ...ingredient('pesto'), link: './pesto.md' }]
     })
     const view = await show([recipe], 'guacamole')
     expect(view.findAll('a').some(a => a.attributes('href') === './pesto.md')).toBe(true)

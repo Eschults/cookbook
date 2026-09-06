@@ -20,6 +20,11 @@ export async function mountView(component, { props = {}, route = '/' } = {}) {
   })
 }
 
+/** An ingredient in the shape `toRecipe()` produces. */
+export function ingredient(name, quantity = null, unit = '') {
+  return { name, quantity, unit, link: null, group: null }
+}
+
 /**
  * A recipe in the shape `toRecipe()` produces, with overridable fields.
  *
@@ -27,16 +32,7 @@ export async function mountView(component, { props = {}, route = '/' } = {}) {
  * cares about the steps does not have to restate them in grouped form.
  */
 export function makeRecipe(overrides = {}) {
-  const recipe = makeRecipeFields(overrides)
-  if (!overrides.stepGroups) {
-    recipe.stepGroups = recipe.steps.length ? [{ title: null, steps: recipe.steps }] : []
-  }
-  return recipe
-}
-
-function makeRecipeFields(overrides) {
-  return {
-    id: 'guacamole',
+  const recipe = {
     slug: 'guacamole',
     title: 'Guacamole',
     description: 'Some people call it guac.',
@@ -44,15 +40,19 @@ function makeRecipeFields(overrides) {
     yields: [{ factor: 4, unit: 'Servings', label: '4 Servings' }],
     servings: 4,
     ingredients: [
-      { name: 'avocado', quantity: 1, unit: '', link: null, group: null, original: '1 avocado', scalable: true },
-      { name: 'salt', quantity: 0.5, unit: 'teaspoon', link: null, group: null, original: '0.5 teaspoon salt', scalable: true },
-      { name: 'lemon juice', quantity: null, unit: '', link: null, group: null, original: 'lemon juice', scalable: false }
+      ingredient('avocado', 1),
+      ingredient('salt', 0.5, 'teaspoon'),
+      ingredient('lemon juice')
     ],
     steps: ['Mash the avocado.', 'Season to taste.'],
     stepGroups: [],
     sources: [],
-    instructions: 'Mash the avocado.',
-    sourcePath: 'recipes/guacamole/recipe.md',
     ...overrides
   }
+
+  if (!overrides.stepGroups) {
+    recipe.stepGroups = recipe.steps.length ? [{ title: null, steps: recipe.steps }] : []
+  }
+
+  return recipe
 }

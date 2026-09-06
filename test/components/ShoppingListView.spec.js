@@ -2,9 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ShoppingListView from '../../src/views/ShoppingListView.vue'
 import { useShoppingList } from '../../src/composables/useShoppingList.js'
 import { i18n } from '../../src/i18n/index.js'
-import { makeRecipe, mountView } from '../helpers.js'
+import { ingredient, makeRecipe, mountView } from '../helpers.js'
 
 const list = useShoppingList()
+
+/** Three ingredients whose names sort differently from their written order. */
+const greengrocer = [ingredient('zucchini', 2), ingredient('échalote', 1), ingredient('ail', 3)]
 
 beforeEach(() => list.clearList())
 afterEach(() => {
@@ -108,9 +111,7 @@ describe('ShoppingListView', () => {
   })
 
   it('leads with the ingredient name and trails the quantity', async () => {
-    list.addRecipe(makeRecipe({
-      ingredients: [{ name: 'flour', quantity: 200, unit: 'g', link: null, group: null, original: '200 g flour', scalable: true }]
-    }), 1)
+    list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
     const view = await mountView(ShoppingListView)
     const flour = view.find('li')
 
@@ -119,13 +120,7 @@ describe('ShoppingListView', () => {
   })
 
   it('orders each group alphabetically by ingredient name', async () => {
-    list.addRecipe(makeRecipe({
-      ingredients: [
-        { name: 'zucchini', quantity: 2, unit: '', link: null, group: null, original: '2 zucchini', scalable: true },
-        { name: 'échalote', quantity: 1, unit: '', link: null, group: null, original: '1 échalote', scalable: true },
-        { name: 'ail', quantity: 3, unit: '', link: null, group: null, original: '3 ail', scalable: true }
-      ]
-    }), 1)
+    list.addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
 
@@ -133,13 +128,7 @@ describe('ShoppingListView', () => {
   })
 
   it('sinks checked items to the bottom of their group, alphabetical within each half', async () => {
-    list.addRecipe(makeRecipe({
-      ingredients: [
-        { name: 'zucchini', quantity: 2, unit: '', link: null, group: null, original: '2 zucchini', scalable: true },
-        { name: 'échalote', quantity: 1, unit: '', link: null, group: null, original: '1 échalote', scalable: true },
-        { name: 'ail', quantity: 3, unit: '', link: null, group: null, original: '3 ail', scalable: true }
-      ]
-    }), 1)
+    list.addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     list.toggleItem(list.shoppingList.value.find(item => item.name === 'zucchini').id)
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
@@ -152,13 +141,7 @@ describe('ShoppingListView', () => {
   })
 
   it('orders checked items by most recently checked first', async () => {
-    list.addRecipe(makeRecipe({
-      ingredients: [
-        { name: 'zucchini', quantity: 2, unit: '', link: null, group: null, original: '2 zucchini', scalable: true },
-        { name: 'échalote', quantity: 1, unit: '', link: null, group: null, original: '1 échalote', scalable: true },
-        { name: 'ail', quantity: 3, unit: '', link: null, group: null, original: '3 ail', scalable: true }
-      ]
-    }), 1)
+    list.addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     // Both checks can land in the same millisecond on a fast machine, so pin
     // Date.now() explicitly rather than relying on real spacing between calls.
     const now = vi.spyOn(Date, 'now')
@@ -194,9 +177,7 @@ describe('ShoppingListView', () => {
   })
 
   it('scales the displayed quantity by the multiplier', async () => {
-    list.addRecipe(makeRecipe({
-      ingredients: [{ name: 'flour', quantity: 0.5, unit: 'g', link: null, group: null, original: '0.5 g flour', scalable: true }]
-    }), 3)
+    list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 0.5, 'g')] }), 3)
     const view = await mountView(ShoppingListView)
     expect(view.text()).toContain('1,5 g')
   })
@@ -204,10 +185,10 @@ describe('ShoppingListView', () => {
   it('hides the quantity for spoon- and pinch-based units', async () => {
     list.addRecipe(makeRecipe({
       ingredients: [
-        { name: 'salt', quantity: 0.5, unit: 'teaspoon', link: null, group: null, original: '0.5 teaspoon salt', scalable: true },
-        { name: 'sugar', quantity: 2, unit: 'cuillère à soupe', link: null, group: null, original: '2 cuillère à soupe sugar', scalable: true },
-        { name: 'pepper', quantity: 1, unit: 'pincée', link: null, group: null, original: '1 pincée pepper', scalable: true },
-        { name: 'flour', quantity: 200, unit: 'g', link: null, group: null, original: '200 g flour', scalable: true }
+        ingredient('salt', 0.5, 'teaspoon'),
+        ingredient('sugar', 2, 'cuillère à soupe'),
+        ingredient('pepper', 1, 'pincée'),
+        ingredient('flour', 200, 'g')
       ]
     }), 1)
     const view = await mountView(ShoppingListView)
@@ -221,10 +202,7 @@ describe('ShoppingListView', () => {
 
   it('shows a large gram figure in kilos', async () => {
     list.addRecipe(makeRecipe({
-      ingredients: [
-        { name: 'flour', quantity: 1200, unit: 'g', link: null, group: null, original: '1200 g flour', scalable: true },
-        { name: 'milk', quantity: 150, unit: 'cl', link: null, group: null, original: '150 cl milk', scalable: true }
-      ]
+      ingredients: [ingredient('flour', 1200, 'g'), ingredient('milk', 150, 'cl')]
     }), 1)
     const view = await mountView(ShoppingListView)
 

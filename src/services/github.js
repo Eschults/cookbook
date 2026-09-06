@@ -67,12 +67,10 @@ export function toRecipe(markdown, path) {
     throw error
   }
 
-  const slug = toSlug(path)
   const { steps, stepGroups, sources } = splitInstructions(parsed.instructions)
 
   return {
-    id: slug,
-    slug,
+    slug: toSlug(path),
     title: parsed.title,
     description: parsed.description || '',
     tags: parsed.tags,
@@ -81,9 +79,7 @@ export function toRecipe(markdown, path) {
     ingredients: flattenIngredients(parsed).map(toIngredient),
     steps,
     stepGroups,
-    sources,
-    instructions: parsed.instructions || '',
-    sourcePath: path
+    sources
   }
 }
 
@@ -97,16 +93,12 @@ function toSlug(path) {
 }
 
 function toIngredient(ingredient) {
-  const quantity = ingredient.amount ? ingredient.amount.factor : null
-
   return {
     name: ingredient.name,
-    quantity,
+    quantity: ingredient.amount ? ingredient.amount.factor : null,
     unit: ingredient.amount?.unit || '',
     link: ingredient.link,
-    group: ingredient.group,
-    original: [ingredient.amount ? formatAmount(ingredient.amount) : '', ingredient.name].filter(Boolean).join(' '),
-    scalable: quantity !== null
+    group: ingredient.group
   }
 }
 

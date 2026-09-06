@@ -10,7 +10,7 @@ const { t } = useI18n()
 
 const menu = computed(() => state.menu.map(entry => ({
   ...entry,
-  recipe: props.recipes.find(recipe => recipe.id === entry.recipeId)
+  recipe: props.recipes.find(recipe => recipe.slug === entry.recipeId)
 })))
 
 /**

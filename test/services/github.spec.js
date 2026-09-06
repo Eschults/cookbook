@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { downloadRecipes, formatAmount, getLatestSha, toRecipe } from '../../src/services/github.js'
 
 const FIXTURES = resolve(process.cwd(), 'test/fixtures/recipemd')
@@ -36,13 +36,11 @@ describe('toRecipe', () => {
     const recipe = toRecipe(fullRecipe, 'recipes/guacamole/recipe.md')
 
     expect(recipe).toMatchObject({
-      id: 'guacamole',
       slug: 'guacamole',
       title: 'Guacamole',
       description: 'Some people call it guac.',
       tags: ['sauce', 'vegan'],
-      servings: 4,
-      sourcePath: 'recipes/guacamole/recipe.md'
+      servings: 4
     })
     expect(recipe.yields[0]).toMatchObject({ factor: 4, unit: 'Servings', label: '4 Servings' })
     expect(recipe.steps).toEqual(['Remove flesh from avocado and roughly mash with fork.'])
@@ -56,11 +54,11 @@ describe('toRecipe', () => {
     ])
   })
 
-  it('exposes quantity, unit and scalability per ingredient', () => {
+  it('exposes the quantity and unit of every ingredient', () => {
     const [avocado, salt, , lemon] = toRecipe(fullRecipe, 'recipes/guacamole/recipe.md').ingredients
-    expect(avocado).toMatchObject({ quantity: 1, unit: '', scalable: true, original: '1 avocado' })
-    expect(salt).toMatchObject({ quantity: 0.5, unit: 'teaspoon', scalable: true })
-    expect(lemon).toMatchObject({ quantity: null, unit: '', scalable: false, original: 'lemon juice' })
+    expect(avocado).toMatchObject({ name: 'avocado', quantity: 1, unit: '' })
+    expect(salt).toMatchObject({ name: 'salt', quantity: 0.5, unit: 'teaspoon' })
+    expect(lemon).toMatchObject({ name: 'lemon juice', quantity: null, unit: '' })
   })
 
   it.each([

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { makeRecipe } from '../helpers.js'
+import { ingredient, makeRecipe } from '../helpers.js'
 
 let useShoppingList
 
@@ -39,7 +39,7 @@ describe('addRecipe', () => {
   it('gives every row a unique id', () => {
     const list = useShoppingList()
     list.addRecipe(makeRecipe(), 1)
-    list.addRecipe(makeRecipe({ id: 'soup', slug: 'soup', title: 'Soup' }), 1)
+    list.addRecipe(makeRecipe({ slug: 'soup', title: 'Soup' }), 1)
 
     const ids = list.shoppingList.value.map(item => item.id)
     expect(new Set(ids).size).toBe(ids.length)
@@ -77,16 +77,14 @@ describe('addRecipe', () => {
   it('merges an ingredient shared by two different recipes onto one row', () => {
     const list = useShoppingList()
     list.addRecipe(makeRecipe({
-      id: 'curry',
       slug: 'curry',
       title: 'Curry',
-      ingredients: [{ name: 'beurre', quantity: 50, unit: 'g', link: null, group: null, original: '50 g beurre', scalable: true }]
+      ingredients: [ingredient('beurre', 50, 'g')]
     }), 1)
     list.addRecipe(makeRecipe({
-      id: 'canneles',
       slug: 'canneles',
       title: 'Cannelés',
-      ingredients: [{ name: 'beurre', quantity: 30, unit: 'g', link: null, group: null, original: '30 g beurre', scalable: true }]
+      ingredients: [ingredient('beurre', 30, 'g')]
     }), 2)
 
     const butter = list.shoppingList.value.filter(item => item.name === 'beurre')
@@ -99,16 +97,14 @@ describe('addRecipe', () => {
     // Crêpes writes milk as "500 g", Cannelés writes it as "500 cL"; both
     // mean the same trip to the same shelf, so they belong on one row.
     list.addRecipe(makeRecipe({
-      id: 'crepes',
       slug: 'crepes',
       title: 'Crêpes',
-      ingredients: [{ name: 'lait', quantity: 500, unit: 'g', link: null, group: null, original: '500 g lait', scalable: true }]
+      ingredients: [ingredient('lait', 500, 'g')]
     }), 1)
     list.addRecipe(makeRecipe({
-      id: 'canneles',
       slug: 'canneles',
       title: 'Cannelés',
-      ingredients: [{ name: 'lait', quantity: 500, unit: 'cL', link: null, group: null, original: '500 cL lait', scalable: true }]
+      ingredients: [ingredient('lait', 500, 'cL')]
     }), 1)
 
     expect(list.shoppingList.value).toEqual([
@@ -133,7 +129,7 @@ describe('addRecipe', () => {
 
   it('keeps the rows of other recipes untouched', () => {
     const list = useShoppingList()
-    list.addRecipe(makeRecipe({ id: 'soup', slug: 'soup', title: 'Soup' }), 1)
+    list.addRecipe(makeRecipe({ slug: 'soup', title: 'Soup' }), 1)
     list.addRecipe(makeRecipe(), 1)
     list.addRecipe(makeRecipe(), 1)
 
@@ -185,7 +181,7 @@ describe('mutations', () => {
   it('removes one recipe from both the list and the menu', () => {
     const list = useShoppingList()
     list.addRecipe(makeRecipe(), 1)
-    list.addRecipe(makeRecipe({ id: 'other', slug: 'other', title: 'Other' }), 1)
+    list.addRecipe(makeRecipe({ slug: 'other', title: 'Other' }), 1)
 
     list.removeRecipe('guacamole')
     expect(list.state.menu.map(entry => entry.recipeId)).toEqual(['other'])

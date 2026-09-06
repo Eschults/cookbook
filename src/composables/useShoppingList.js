@@ -65,7 +65,7 @@ export function useShoppingList() {
    * ingredient snapshot to whatever the recipe currently declares.
    */
   function addRecipe(recipe, multiplier) {
-    const entry = state.menu.find(item => item.recipeId === recipe.id)
+    const entry = state.menu.find(item => item.recipeId === recipe.slug)
     const ingredients = recipe.ingredients.map(ingredient => ({
       name: ingredient.name,
       unit: ingredient.unit || '',
@@ -79,7 +79,7 @@ export function useShoppingList() {
       entry.addedAt = new Date().toISOString()
     } else {
       state.menu.push({
-        recipeId: recipe.id,
+        recipeId: recipe.slug,
         recipeTitle: recipe.title,
         multiplier,
         ingredients,

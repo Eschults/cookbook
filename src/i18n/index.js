@@ -23,6 +23,3 @@ export const i18n = createI18n({
   messages: { en, fr },
   pluralRules: { fr: frenchPlural }
 })
-
-export { en, fr }
-export { DEFAULT_LOCALE, LOCALES } from './locales.js'

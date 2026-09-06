@@ -41,7 +41,7 @@ const filtered = computed(() => {
     </div>
 
     <div v-if="filtered.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <RecipeCard v-for="recipe in filtered" :key="recipe.id" :recipe="recipe" />
+      <RecipeCard v-for="recipe in filtered" :key="recipe.slug" :recipe="recipe" />
     </div>
 
     <div v-else class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">

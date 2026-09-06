@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   loadAppState, saveAppState,
   loadLocale, saveLocale,
@@ -7,8 +7,8 @@ import {
 
 describe('recipe cache', () => {
   it('round trips', () => {
-    saveRecipeCache({ sha: 'abc123', recipes: [{ id: 'x' }] })
-    expect(loadRecipeCache()).toEqual({ sha: 'abc123', recipes: [{ id: 'x' }] })
+    saveRecipeCache({ sha: 'abc123', recipes: [{ slug: 'x' }] })
+    expect(loadRecipeCache()).toEqual({ sha: 'abc123', recipes: [{ slug: 'x' }] })
   })
 
   it('returns null when empty', () => {

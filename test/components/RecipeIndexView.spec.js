@@ -4,8 +4,8 @@ import { i18n } from '../../src/i18n/index.js'
 import { makeRecipe, mountView } from '../helpers.js'
 
 const recipes = [
-  makeRecipe({ id: 'guac', slug: 'guac', title: 'Guacamole', tags: ['sauce', 'vegan'] }),
-  makeRecipe({ id: 'tarte', slug: 'tarte', title: 'Tarte Tatin', tags: ['dessert'], description: 'Caramelised apples.' })
+  makeRecipe({ slug: 'guac', title: 'Guacamole', tags: ['sauce', 'vegan'] }),
+  makeRecipe({ slug: 'tarte', title: 'Tarte Tatin', tags: ['dessert'], description: 'Caramelised apples.' })
 ]
 
 describe('RecipeIndexView', () => {

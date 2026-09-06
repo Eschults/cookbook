@@ -30,7 +30,7 @@ describe('MenuView', () => {
     expect(view.text()).toContain('0 repas prévu')
 
     list.addRecipe(makeRecipe(), 1)
-    list.addRecipe(makeRecipe({ id: 'soup', slug: 'soup', title: 'Soup' }), 1)
+    list.addRecipe(makeRecipe({ slug: 'soup', title: 'Soup' }), 1)
     const planned = await mountView(MenuView, { props: { recipes: [] } })
     expect(planned.text()).toContain('2 repas prévus')
   })

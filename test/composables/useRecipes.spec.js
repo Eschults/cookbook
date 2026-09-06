@@ -17,8 +17,8 @@ beforeEach(async () => {
   ;({ i18n } = await import('../../src/i18n/index.js'))
 })
 
-const alpha = makeRecipe({ id: 'a', slug: 'a', title: 'Alpha' })
-const zulu = makeRecipe({ id: 'z', slug: 'z', title: 'Zulu' })
+const alpha = makeRecipe({ slug: 'a', title: 'Alpha' })
+const zulu = makeRecipe({ slug: 'z', title: 'Zulu' })
 
 describe('refresh', () => {
   it('downloads and caches when there is no cache', async () => {
@@ -111,9 +111,9 @@ describe('ordering', () => {
   it('re-sorts when the locale changes, without re-downloading', async () => {
     github.getLatestSha.mockResolvedValue('sha1')
     github.downloadRecipes.mockResolvedValue([
-      makeRecipe({ id: 'c', slug: 'c', title: 'Cote' }),
-      makeRecipe({ id: 'b', slug: 'b', title: 'Côte' }),
-      makeRecipe({ id: 'a', slug: 'a', title: 'Ananas' })
+      makeRecipe({ slug: 'c', title: 'Cote' }),
+      makeRecipe({ slug: 'b', title: 'Côte' }),
+      makeRecipe({ slug: 'a', title: 'Ananas' })
     ])
 
     const { recipes, refresh } = useRecipes()
