@@ -67,12 +67,25 @@ describe('MenuView', () => {
     expect(list.state.menu).toHaveLength(1)
   })
 
-  it('removes a recipe from the menu and the list together', async () => {
+  it('removes a recipe from the menu and the list together once confirmed', async () => {
+    const confirm = vi.fn(() => true)
+    vi.stubGlobal('confirm', confirm)
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
     await view.findAll('button').find(b => b.text() === 'Retirer').trigger('click')
+
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('Guacamole'))
     expect(list.state.menu).toEqual([])
     expect(list.shoppingList.value).toEqual([])
+  })
+
+  it('keeps the recipe on the menu when the removal is declined', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => false))
+    list.addRecipe(makeRecipe(), 1)
+    const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
+
+    await view.findAll('button').find(b => b.text() === 'Retirer').trigger('click')
+    expect(list.state.menu).toHaveLength(1)
   })
 })

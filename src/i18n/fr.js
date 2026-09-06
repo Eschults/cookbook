@@ -69,6 +69,7 @@ export default {
     count: '{n} repas prévu | {n} repas prévus',
     openRecipe: 'Ouvrir la recette',
     stale: 'Cette recette n’est plus présente dans le dépôt source.',
+    confirmRemove: 'Retirer {name} du menu ?',
     confirmClear: 'Effacer tout le menu et la liste de courses ?',
     emptyTitle: 'Aucune recette à votre menu',
     emptyHint: 'Lorsque vous ajoutez une recette à votre liste de courses, elle apparaît ici.'

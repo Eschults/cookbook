@@ -24,6 +24,12 @@ function confirmClear() {
 function formatMultiplier(multiplier) {
   return Math.round(multiplier * 100) / 100
 }
+
+/** Destructive and one tap away, like the shopping list's own remove button, so it asks first. */
+function confirmRemove(entry) {
+  const name = entry.recipe?.title || entry.recipeId
+  if (window.confirm(t('menu.confirmRemove', { name }))) removeRecipe(entry.recipeId)
+}
 </script>
 
 <template>
@@ -53,7 +59,7 @@ function formatMultiplier(multiplier) {
             <p v-if="!entry.recipe" class="mt-0.5 text-xs text-rose-500">{{ t('menu.stale') }}</p>
           </div>
           <RouterLink v-if="entry.recipe" :to="`/r/${entry.recipe.slug}`" class="shrink-0 text-sm font-black text-blue-600 hover:text-blue-700">{{ t('menu.openRecipe') }} →</RouterLink>
-          <button @click="removeRecipe(entry.recipeId)" class="shrink-0 text-xs font-bold text-slate-300 hover:text-rose-500">{{ t('common.remove') }}</button>
+          <button @click="confirmRemove(entry)" class="shrink-0 text-xs font-bold text-slate-300 hover:text-rose-500">{{ t('common.remove') }}</button>
         </li>
       </ul>
     </div>

@@ -69,6 +69,7 @@ export default {
     count: '{n} meal planned | {n} meals planned',
     openRecipe: 'Open recipe',
     stale: 'Recipe is no longer present in the source repository.',
+    confirmRemove: 'Remove {name} from the menu?',
     confirmClear: 'Clear the whole menu and the shopping list?',
     emptyTitle: 'No recipes in your menu',
     emptyHint: 'When you add a recipe to your shopping list, it will appear here.'
