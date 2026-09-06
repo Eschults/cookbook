@@ -27,7 +27,7 @@ const zulu = makeRecipe({ slug: 'z', title: 'Zulu' })
  * Re-importing hands back a fresh github mock too, which the caller arms.
  */
 async function reloadWithCache(cache) {
-  localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify(cache))
+  localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ version: __APP_VERSION__, ...cache }))
   vi.resetModules()
   const composable = await import('../../src/composables/useRecipes.js')
   const mocked = await import('../../src/services/github.js')
@@ -62,6 +62,25 @@ describe('refresh', () => {
 
     await store.refresh()
 
+    expect(gh.downloadRecipes).toHaveBeenCalled()
+    expect(store.recipes.value.map(r => r.title)).toEqual(['Zulu'])
+  })
+
+  it('ignores a cache left over from a different app version and re-downloads', async () => {
+    // Written directly rather than through reloadWithCache, which always
+    // stamps the current build's version — this simulates a cache a previous
+    // deploy left behind.
+    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'sha1', recipes: [alpha], version: 'old-build' }))
+    vi.resetModules()
+    const { useRecipes: useRecipesAfterReload } = await import('../../src/composables/useRecipes.js')
+    const gh = await import('../../src/services/github.js')
+    gh.getLatestSha.mockResolvedValue('sha1')
+    gh.downloadRecipes.mockResolvedValue([zulu])
+
+    const store = useRecipesAfterReload()
+    expect(store.recipes.value).toEqual([])
+
+    await store.refresh()
     expect(gh.downloadRecipes).toHaveBeenCalled()
     expect(store.recipes.value.map(r => r.title)).toEqual(['Zulu'])
   })

@@ -20,8 +20,14 @@ const recipes = computed(() =>
 // Hydrate from the cache once, at import, like useShoppingList does. This is
 // the only read: from here on `downloaded` and `cachedSha` are what the cache
 // holds, so refresh() compares against them rather than reading it again.
+//
+// A cache built by an older version of this app is discarded rather than
+// trusted: a fix to how a recipe is parsed or rendered only reaches someone
+// with an unchanged upstream sha once their next visit treats that stale
+// cache as empty and downloads again, rather than needing them to notice and
+// clear it by hand.
 const cached = loadRecipeCache()
-if (cached?.recipes?.length) {
+if (cached?.recipes?.length && cached.version === __APP_VERSION__) {
   downloaded.value = cached.recipes
   cachedSha.value = cached.sha || ''
 }
@@ -42,7 +48,7 @@ export function useRecipes() {
       const freshRecipes = await downloadRecipes()
       downloaded.value = freshRecipes
       cachedSha.value = latestSha
-      saveRecipeCache({ sha: latestSha, recipes: freshRecipes })
+      saveRecipeCache({ sha: latestSha, recipes: freshRecipes, version: __APP_VERSION__ })
     } catch (err) {
       if (!downloaded.value.length) {
         error.value = err?.message || i18n.global.t('app.unknownError')

@@ -5,6 +5,11 @@ import vue from '@vitejs/plugin-vue'
 // the PWA plugin, the tests need neither.
 export default defineConfig({
   plugins: [vue()],
+  define: {
+    // Tests don't care which commit they run against, only that useRecipes
+    // sees some fixed value rather than an undefined global.
+    __APP_VERSION__: JSON.stringify('test')
+  },
   test: {
     environment: 'jsdom',
     // Reuses jsdom across files in a worker instead of recreating it per
