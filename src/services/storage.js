@@ -17,11 +17,22 @@ export function saveRecipeCache(value) {
   localStorage.setItem(CACHE_KEY, JSON.stringify(value))
 }
 
+/**
+ * Keeps only the fields a menu entry still has: `recipeId` and `multiplier`
+ * are the app's own state, everything else about a recipe (title,
+ * ingredients) belongs to GitHub and is looked up live instead. This also
+ * drops the `ingredients`/`recipeTitle` a pre-normalisation entry carried,
+ * so an existing menu survives the shape change instead of being wiped.
+ */
+function normalizeMenuEntry(entry) {
+  return { recipeId: entry.recipeId, multiplier: entry.multiplier, addedAt: entry.addedAt }
+}
+
 export function loadAppState() {
   try {
     const value = JSON.parse(localStorage.getItem(STATE_KEY) || '{}')
     return {
-      menu: Array.isArray(value.menu) ? value.menu : [],
+      menu: Array.isArray(value.menu) ? value.menu.map(normalizeMenuEntry) : [],
       checked: value.checked && typeof value.checked === 'object' ? value.checked : {},
       excluded: Array.isArray(value.excluded) ? value.excluded : []
     }

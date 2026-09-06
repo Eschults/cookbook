@@ -2,6 +2,7 @@ import { computed, reactive } from 'vue'
 import { loadAppState, saveAppState } from '../services/storage.js'
 import { toBaseAmount } from '../services/units.js'
 import { isAlwaysExcludedIngredient } from '../services/ingredientExclusions.js'
+import { useRecipes } from './useRecipes.js'
 
 const state = reactive(loadAppState())
 
@@ -17,6 +18,8 @@ function persist() {
 const itemKey = (name, unit) => `${name} ${unit}`
 
 export function useShoppingList() {
+  const { recipes } = useRecipes()
+
   /**
    * The list is rebuilt from the menu's recipes on every read instead of
    * being stored as its own snapshot. That is what lets two different
@@ -24,6 +27,14 @@ export function useShoppingList() {
    * summed quantity — a snapshot-per-recipe only ever merged an ingredient
    * against itself, so the same ingredient coming from two recipes produced
    * two separate lines.
+   *
+   * Ingredients are looked up on `recipes` rather than kept on the menu
+   * entry itself: GitHub is the only source of truth for a recipe's content,
+   * so the menu only remembers which recipe it wants and by how much. This
+   * also means a recipe's ingredients update on the shopping list the moment
+   * a fresh fetch changes them, instead of waiting for someone to re-add it.
+   * A recipe gone from `recipes` (deleted upstream, or not loaded yet)
+   * simply contributes nothing.
    *
    * Amounts are converted to a canonical unit before they are keyed, so the
    * same ingredient measured two different ways — "500 g lait" in one recipe,
@@ -33,7 +44,9 @@ export function useShoppingList() {
   const shoppingList = computed(() => {
     const rows = new Map()
     for (const entry of state.menu) {
-      for (const ingredient of entry.ingredients) {
+      const recipe = recipes.value.find(item => item.slug === entry.recipeId)
+      if (!recipe) continue
+      for (const ingredient of recipe.ingredients) {
         const scaled = ingredient.quantity == null ? null : ingredient.quantity * entry.multiplier
         const amount = toBaseAmount(scaled, ingredient.unit)
         const key = itemKey(ingredient.name, amount.unit)
@@ -60,30 +73,17 @@ export function useShoppingList() {
   const totalCount = computed(() => shoppingList.value.length)
   const menuCount = computed(() => state.menu.length)
 
-  /**
-   * Adding a recipe that is already on the menu raises its multiplier
-   * instead of listing its ingredients a second time, and refreshes the
-   * ingredient snapshot to whatever the recipe currently declares.
-   */
+  /** Adding a recipe that is already on the menu raises its multiplier instead of listing it twice. */
   function addRecipe(recipe, multiplier) {
     const entry = state.menu.find(item => item.recipeId === recipe.slug)
-    const ingredients = recipe.ingredients.map(ingredient => ({
-      name: ingredient.name,
-      unit: ingredient.unit || '',
-      quantity: ingredient.quantity
-    }))
 
     if (entry) {
       entry.multiplier += multiplier
-      entry.ingredients = ingredients
-      entry.recipeTitle = recipe.title
       entry.addedAt = new Date().toISOString()
     } else {
       state.menu.push({
         recipeId: recipe.slug,
-        recipeTitle: recipe.title,
         multiplier,
-        ingredients,
         addedAt: new Date().toISOString()
       })
     }

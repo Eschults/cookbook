@@ -1,13 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ShoppingListView from '../../src/views/ShoppingListView.vue'
 import { useShoppingList } from '../../src/composables/useShoppingList.js'
+import { useRecipes } from '../../src/composables/useRecipes.js'
+import * as github from '../../src/services/github.js'
 import { i18n } from '../../src/i18n/index.js'
 import { ingredient, makeRecipe, mountView } from '../helpers.js'
 
+vi.mock('../../src/services/github.js', () => ({
+  getLatestSha: vi.fn(),
+  downloadRecipes: vi.fn()
+}))
+
 const list = useShoppingList()
+const { refresh } = useRecipes()
 
 /** Three ingredients whose names sort differently from their written order. */
 const greengrocer = [ingredient('zucchini', 2), ingredient('échalote', 1), ingredient('ail', 3)]
+
+let nextSha = 0
+
+/**
+ * `useShoppingList` looks ingredients up on `useRecipes`'s live list rather
+ * than storing its own copy, so a test has to publish the recipe it wants to
+ * add there first — the way a real fetch would — before adding it to the menu.
+ */
+async function addRecipe(recipe, multiplier) {
+  github.getLatestSha.mockResolvedValue(`sha${nextSha++}`)
+  github.downloadRecipes.mockResolvedValue([recipe])
+  await refresh()
+  list.addRecipe(recipe, multiplier)
+}
 
 beforeEach(() => list.clearList())
 
@@ -18,7 +40,7 @@ describe('ShoppingListView', () => {
   })
 
   it('lists every ingredient as one flat list', async () => {
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     expect(view.text()).toContain('Avocado')
@@ -27,14 +49,14 @@ describe('ShoppingListView', () => {
   })
 
   it('counts what is left against the total', async () => {
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
     expect(view.text()).toContain('3 restants')
     expect(view.text()).toContain('3 au total')
   })
 
   it('checks an item off, and only once', async () => {
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     // The row handler must not fire as well, or the item would toggle back.
@@ -45,7 +67,7 @@ describe('ShoppingListView', () => {
   })
 
   it('checks an item off by clicking anywhere on the row', async () => {
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     // The click handler lives on the row's content div, not the <li> itself,
@@ -57,7 +79,7 @@ describe('ShoppingListView', () => {
   it('removes an item once the confirmation is accepted', async () => {
     const confirm = vi.fn(() => true)
     vi.stubGlobal('confirm', confirm)
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     // The desktop text button asks for confirmation; the mobile swipe
@@ -70,7 +92,7 @@ describe('ShoppingListView', () => {
 
   it('keeps the item, unchecked, when the confirmation is dismissed', async () => {
     vi.stubGlobal('confirm', vi.fn(() => false))
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     await view.find('button.sm\\:inline-block').trigger('click')
@@ -82,7 +104,7 @@ describe('ShoppingListView', () => {
   it('removes an item on mobile with a tap, without confirmation', async () => {
     const confirm = vi.fn(() => true)
     vi.stubGlobal('confirm', confirm)
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     await view.find('button.sm\\:hidden').trigger('click')
@@ -92,7 +114,7 @@ describe('ShoppingListView', () => {
   })
 
   it('leads with the ingredient name and trails the quantity', async () => {
-    list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+    await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
     const view = await mountView(ShoppingListView)
     const flour = view.find('li')
 
@@ -101,7 +123,7 @@ describe('ShoppingListView', () => {
   })
 
   it('orders each group alphabetically by ingredient name', async () => {
-    list.addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
+    await addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
 
@@ -109,7 +131,7 @@ describe('ShoppingListView', () => {
   })
 
   it('sinks checked items to the bottom of their group, alphabetical within each half', async () => {
-    list.addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
+    await addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     list.toggleItem(list.shoppingList.value.find(item => item.name === 'zucchini').id)
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
@@ -122,7 +144,7 @@ describe('ShoppingListView', () => {
   })
 
   it('orders checked items by most recently checked first', async () => {
-    list.addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
+    await addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     // Both checks can land in the same millisecond on a fast machine, so pin
     // Date.now() explicitly rather than relying on real spacing between calls.
     const now = vi.spyOn(Date, 'now')
@@ -139,18 +161,18 @@ describe('ShoppingListView', () => {
   it('clears the whole list once the confirmation is accepted', async () => {
     const confirm = vi.fn(() => true)
     vi.stubGlobal('confirm', confirm)
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     await view.findAll('button').find(b => b.text() === 'Tout effacer').trigger('click')
 
-    expect(confirm).toHaveBeenCalledWith('Effacer toute la liste de courses\u00A0?')
+    expect(confirm).toHaveBeenCalledWith('Effacer toute la liste de courses ?')
     expect(list.shoppingList.value).toHaveLength(0)
   })
 
   it('keeps the list when the clear confirmation is dismissed', async () => {
     vi.stubGlobal('confirm', vi.fn(() => false))
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     await view.findAll('button').find(b => b.text() === 'Tout effacer').trigger('click')
@@ -158,13 +180,13 @@ describe('ShoppingListView', () => {
   })
 
   it('scales the displayed quantity by the multiplier', async () => {
-    list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 0.5, 'g')] }), 3)
+    await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 0.5, 'g')] }), 3)
     const view = await mountView(ShoppingListView)
     expect(view.text()).toContain('1,5 g')
   })
 
   it('hides the quantity for spoon- and pinch-based units', async () => {
-    list.addRecipe(makeRecipe({
+    await addRecipe(makeRecipe({
       ingredients: [
         ingredient('salt', 0.5, 'teaspoon'),
         ingredient('sugar', 2, 'cuillère à soupe'),
@@ -182,7 +204,7 @@ describe('ShoppingListView', () => {
   })
 
   it('shows a large gram figure in kilos', async () => {
-    list.addRecipe(makeRecipe({
+    await addRecipe(makeRecipe({
       ingredients: [ingredient('flour', 1200, 'g'), ingredient('milk', 150, 'cl')]
     }), 1)
     const view = await mountView(ShoppingListView)
@@ -207,7 +229,7 @@ describe('ShoppingListView', () => {
     }
 
     it('opens the row when the drag passes the halfway point', async () => {
-      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
       const view = await mountView(ShoppingListView)
       const [row] = rowsOf(view)
 
@@ -218,7 +240,7 @@ describe('ShoppingListView', () => {
     })
 
     it('snaps shut again when the drag stops short of it', async () => {
-      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
       const view = await mountView(ShoppingListView)
       const [row] = rowsOf(view)
 
@@ -229,7 +251,7 @@ describe('ShoppingListView', () => {
     })
 
     it('tracks the finger mid-drag and clamps to the reveal width', async () => {
-      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
       const view = await mountView(ShoppingListView)
       const [row] = rowsOf(view)
 
@@ -246,7 +268,7 @@ describe('ShoppingListView', () => {
     })
 
     it('does not tick the item off at the end of a swipe', async () => {
-      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
       const view = await mountView(ShoppingListView)
       const [row] = rowsOf(view)
 
@@ -259,7 +281,7 @@ describe('ShoppingListView', () => {
     })
 
     it('spends the next tap closing the row rather than ticking it off', async () => {
-      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
       const view = await mountView(ShoppingListView)
       const [row] = rowsOf(view)
 
@@ -277,7 +299,7 @@ describe('ShoppingListView', () => {
     })
 
     it('closes an open row when another one is touched', async () => {
-      list.addRecipe(makeRecipe({
+      await addRecipe(makeRecipe({
         ingredients: [ingredient('ail', 3), ingredient('basilic', 1)]
       }), 1)
       const view = await mountView(ShoppingListView)
@@ -294,7 +316,7 @@ describe('ShoppingListView', () => {
     it('removes the item from the reveal button without confirming', async () => {
       const confirm = vi.fn(() => true)
       vi.stubGlobal('confirm', confirm)
-      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
       const view = await mountView(ShoppingListView)
       const [row] = rowsOf(view)
 
@@ -309,7 +331,7 @@ describe('ShoppingListView', () => {
   })
 
   it('follows the active locale', async () => {
-    list.addRecipe(makeRecipe(), 1)
+    await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
     expect(view.text()).toContain('3 restants')
 

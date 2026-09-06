@@ -46,7 +46,7 @@ function formatMultiplier(multiplier) {
         <li v-for="entry in menu" :key="entry.recipeId" class="flex items-center gap-4 px-5 py-4">
           <div class="min-w-0 flex-1">
             <h2 class="flex items-center gap-2 truncate font-black text-slate-900">
-              {{ entry.recipeTitle }}
+              {{ entry.recipe?.title || entry.recipeId }}
               <span class="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">×{{ formatMultiplier(entry.multiplier) }}</span>
             </h2>
             <p v-if="entry.recipe?.description" class="mt-0.5 truncate text-sm text-slate-500">{{ entry.recipe.description }}</p>
