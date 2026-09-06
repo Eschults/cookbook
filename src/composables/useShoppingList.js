@@ -1,6 +1,7 @@
 import { computed, reactive } from 'vue'
 import { loadAppState, saveAppState } from '../services/storage.js'
 import { toBaseAmount } from '../services/units.js'
+import { isAlwaysExcludedIngredient } from '../services/ingredientExclusions.js'
 
 const state = reactive(loadAppState())
 
@@ -36,7 +37,7 @@ export function useShoppingList() {
         const scaled = ingredient.quantity == null ? null : ingredient.quantity * entry.multiplier
         const amount = toBaseAmount(scaled, ingredient.unit)
         const key = itemKey(ingredient.name, amount.unit)
-        if (state.excluded.includes(key)) continue
+        if (state.excluded.includes(key) || isAlwaysExcludedIngredient(ingredient.name)) continue
         const existing = rows.get(key)
         if (existing) {
           if (amount.quantity != null) existing.quantity = (existing.quantity ?? 0) + amount.quantity

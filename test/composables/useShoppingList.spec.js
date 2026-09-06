@@ -108,13 +108,13 @@ describe('addRecipe', () => {
 
   it('sums a quantity onto a row that started without one', () => {
     const list = useShoppingList()
-    // Both key to "sel g", so the second addition lands on the first's row,
-    // which has no running total to add to yet.
-    list.addRecipe(makeRecipe({ slug: 'a', ingredients: [ingredient('sel', null, 'g')] }), 1)
-    list.addRecipe(makeRecipe({ slug: 'b', ingredients: [ingredient('sel', 5, 'g')] }), 1)
+    // Both key to "farine g", so the second addition lands on the first's
+    // row, which has no running total to add to yet.
+    list.addRecipe(makeRecipe({ slug: 'a', ingredients: [ingredient('farine', null, 'g')] }), 1)
+    list.addRecipe(makeRecipe({ slug: 'b', ingredients: [ingredient('farine', 5, 'g')] }), 1)
 
     expect(list.shoppingList.value).toEqual([
-      expect.objectContaining({ name: 'sel', quantity: 5, unit: 'g' })
+      expect.objectContaining({ name: 'farine', quantity: 5, unit: 'g' })
     ])
   })
 
@@ -131,6 +131,20 @@ describe('addRecipe', () => {
       quantity: 1
     })
     expect(list.shoppingList.value.filter(item => item.checked)).toHaveLength(1)
+  })
+
+  it('always excludes pantry staples like water, salt and pepper', () => {
+    const list = useShoppingList()
+    list.addRecipe(makeRecipe({
+      ingredients: [
+        ingredient('avocado', 1),
+        ingredient('Eau', 200, 'ml'),
+        ingredient(' sel ', 5, 'g'),
+        ingredient('POIVRE', 1, 'pincée')
+      ]
+    }), 1)
+
+    expect(list.shoppingList.value.map(item => item.name)).toEqual(['avocado'])
   })
 
   it('keeps the rows of other recipes untouched', () => {
