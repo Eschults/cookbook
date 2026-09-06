@@ -6,6 +6,7 @@ import { useRecipes } from './composables/useRecipes.js'
 import { useShoppingList } from './composables/useShoppingList.js'
 import { useLocale } from './composables/useLocale.js'
 import BrandMark from './components/BrandMark.vue'
+import { repositoryLabel, repositoryUrl } from './config.js'
 
 const { recipes, loading, error, refresh, cachedSha } = useRecipes()
 const { itemCount, menuCount } = useShoppingList()
@@ -74,7 +75,7 @@ onMounted(() => refresh())
 
     <footer class="mx-auto max-w-6xl px-4 pb-8 text-xs text-slate-400 sm:px-6">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-200 pt-5">
-        <a class="font-semibold hover:text-slate-600" href="https://github.com/ssaunier/recipes" target="_blank" rel="noreferrer">ssaunier/recipes</a>
+        <a class="font-semibold hover:text-slate-600" :href="repositoryUrl" target="_blank" rel="noreferrer">{{ repositoryLabel }}</a>
         <span v-if="cachedSha" class="font-mono">{{ cachedSha.slice(0, 7) }}</span>
         <button @click="refreshRecipes" :disabled="refreshing" class="font-semibold hover:text-slate-600 disabled:opacity-50">
           {{ refreshing ? t('app.refreshing') : t('app.refresh') }}

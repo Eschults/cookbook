@@ -1,13 +1,17 @@
 import { parseRecipe, flattenIngredients, RecipeMDError } from './recipemd.js'
+import { recipesRepo } from '../config.js'
 
-const OWNER = 'ssaunier'
-const REPO = 'recipes'
-const BRANCH = 'main'
-const API = `https://api.github.com/repos/${OWNER}/${REPO}`
-const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`
+const { owner, repo, branch, directory } = recipesRepo
+const API = `https://api.github.com/repos/${owner}/${repo}`
+const RAW = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`
+
+/** A trailing slash unless the recipes sit at the repository root. */
+const PREFIX = directory ? `${directory.replace(/^\/+|\/+$/g, '')}/` : ''
+
+const ESCAPED_PREFIX = PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /** Recipes live under this directory in the source repository. */
-const RECIPE_PATH = /^recipes\/.+\.md$/i
+const RECIPE_PATH = new RegExp(`^${ESCAPED_PREFIX}.+\\.md$`, 'i')
 
 /** Yield units that describe a number of eaters rather than a volume. */
 const SERVING_UNITS = /^(servings?|portions?|persons?|people|personnes?|pers\.?|parts?|couverts?)$/i
@@ -21,12 +25,12 @@ async function githubFetch(url) {
 }
 
 export async function getLatestSha() {
-  const commit = await githubFetch(`${API}/commits/${BRANCH}`)
+  const commit = await githubFetch(`${API}/commits/${branch}`)
   return commit.sha
 }
 
 export async function downloadRecipes() {
-  const tree = await githubFetch(`${API}/git/trees/${BRANCH}?recursive=1`)
+  const tree = await githubFetch(`${API}/git/trees/${branch}?recursive=1`)
   if (tree.truncated) {
     throw new Error('GitHub returned a truncated repository tree. The source repository is too large for this client-side loader.')
   }
@@ -85,7 +89,7 @@ export function toRecipe(markdown, path) {
 /** `recipes/pate-a-tartiner/recipe.md` becomes `pate-a-tartiner`. */
 function toSlug(path) {
   return path
-    .replace(/^recipes\//i, '')
+    .replace(new RegExp(`^${ESCAPED_PREFIX}`, 'i'), '')
     .replace(/\.md$/i, '')
     .replace(/\/recipe$/i, '')
     .replace(/\//g, '-')

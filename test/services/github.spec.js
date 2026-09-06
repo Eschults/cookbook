@@ -102,6 +102,56 @@ describe('toRecipe', () => {
   })
 })
 
+describe('source repository configuration', () => {
+  // The whole point of src/config.js: a fork edits it and nothing else.
+  const forked = {
+    recipesRepo: { owner: 'octocat', repo: 'dishes', branch: 'trunk', directory: 'plats' },
+    repositoryLabel: 'octocat/dishes',
+    repositoryUrl: 'https://github.com/octocat/dishes'
+  }
+
+  async function withForkedConfig() {
+    vi.resetModules()
+    vi.doMock('../../src/config.js', () => forked)
+    return import('../../src/services/github.js')
+  }
+
+  it('builds the API and raw URLs from it', async () => {
+    const fetch = stubFetch({
+      '/git/trees/': tree('plats/a/recipe.md', 'recipes/ignored.md'),
+      'plats/a/recipe.md': fullRecipe
+    })
+    const github = await withForkedConfig()
+
+    const recipes = await github.downloadRecipes()
+    const urls = fetch.mock.calls.map(([url]) => String(url))
+
+    expect(urls[0]).toBe('https://api.github.com/repos/octocat/dishes/git/trees/trunk?recursive=1')
+    expect(urls[1]).toBe('https://raw.githubusercontent.com/octocat/dishes/trunk/plats/a/recipe.md')
+    // The configured directory drives both the filter and the slug.
+    expect(recipes.map(item => item.slug)).toEqual(['a'])
+  })
+
+  it('follows the configured branch when reading the head sha', async () => {
+    stubFetch({ '/commits/trunk': { sha: 'c0ffee' } })
+    const github = await withForkedConfig()
+
+    expect(await github.getLatestSha()).toBe('c0ffee')
+  })
+
+  it('scans the whole repository when no directory is configured', async () => {
+    vi.resetModules()
+    vi.doMock('../../src/config.js', () => ({
+      ...forked,
+      recipesRepo: { ...forked.recipesRepo, directory: '' }
+    }))
+    stubFetch({ '/git/trees/': tree('anywhere/a.md'), 'anywhere/a.md': fullRecipe })
+    const github = await import('../../src/services/github.js')
+
+    expect((await github.downloadRecipes()).map(item => item.slug)).toEqual(['anywhere-a'])
+  })
+})
+
 describe('formatAmount', () => {
   it.each([
     [{ factor: 200, unit: 'g' }, '200 g'],
