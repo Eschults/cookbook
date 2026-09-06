@@ -1,0 +1,18 @@
+{
+  "description": null,
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "flour",
+      "amount": {
+        "factor": 200,
+        "unit": "g"
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": null,
+  "title": "Pancakes"
+}

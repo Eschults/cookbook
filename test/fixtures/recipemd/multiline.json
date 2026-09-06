@@ -1,0 +1,23 @@
+{
+  "description": null,
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "A long ingredient\n\n  with a second paragraph",
+      "amount": null,
+      "link": null
+    },
+    {
+      "name": "amount alone on the first line",
+      "amount": {
+        "factor": 5,
+        "unit": "g"
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": null,
+  "title": "Multiline"
+}

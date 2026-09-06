@@ -1,0 +1,38 @@
+{
+  "description": null,
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "pesto",
+      "amount": null,
+      "link": "./pesto.md"
+    },
+    {
+      "name": "tomato sauce",
+      "amount": {
+        "factor": 2,
+        "unit": "tbsp"
+      },
+      "link": "http://example.org/sauce"
+    },
+    {
+      "name": "spaces",
+      "amount": null,
+      "link": "./foo%20bar.md"
+    },
+    {
+      "name": "titled",
+      "amount": null,
+      "link": "./foo.md"
+    },
+    {
+      "name": "[not a link](http://example.org) plus trailing text",
+      "amount": null,
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": null,
+  "title": "Links"
+}

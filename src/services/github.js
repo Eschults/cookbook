@@ -1,13 +1,19 @@
+import { parseRecipe, flattenIngredients, RecipeMDError } from './recipemd.js'
+
 const OWNER = 'ssaunier'
 const REPO = 'recipes'
 const BRANCH = 'main'
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`
 const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`
 
+/** Recipes live under this directory in the source repository. */
+const RECIPE_PATH = /^recipes\/.+\.md$/i
+
+/** Yield units that describe a number of eaters rather than a volume. */
+const SERVING_UNITS = /^(servings?|portions?|persons?|people|personnes?|pers\.?|parts?|couverts?)$/i
+
 async function githubFetch(url) {
-  const response = await fetch(url, {
-    headers: { Accept: 'application/vnd.github+json' }
-  })
+  const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } })
   if (!response.ok) {
     throw new Error(`GitHub returned ${response.status} for ${url}`)
   }
@@ -22,152 +28,145 @@ export async function getLatestSha() {
 export async function downloadRecipes() {
   const tree = await githubFetch(`${API}/git/trees/${BRANCH}?recursive=1`)
   if (tree.truncated) {
-    throw new Error('GitHub returned a truncated repository tree. The source repository is too large for the simple client-side loader.')
+    throw new Error('GitHub returned a truncated repository tree. The source repository is too large for this client-side loader.')
   }
 
   const paths = tree.tree
-    .filter(item => item.type === 'blob' && /(^|\/)recipe\.md$/i.test(item.path))
+    .filter(item => item.type === 'blob' && RECIPE_PATH.test(item.path))
     .map(item => item.path)
 
   const results = await Promise.all(paths.map(async path => {
-    const response = await fetch(`${RAW}/${path}`)
+    const response = await fetch(`${RAW}/${encodeURI(path)}`)
     if (!response.ok) throw new Error(`Unable to download ${path}`)
-    const markdown = await response.text()
-    return parseRecipeMD(markdown, path)
+    return toRecipe(await response.text(), path)
   }))
 
-  return results
-    .filter(Boolean)
-    .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }))
+  // Ordering is locale-dependent, so it lives in useRecipes() rather than in
+  // the cached payload: the locale can change without a re-download.
+  return results.filter(Boolean)
 }
 
-function parseRecipeMD(markdown, path) {
-  const lines = markdown.replace(/\r\n/g, '\n').split('\n')
-  const title = (lines.find(line => /^#\s+/.test(line)) || '').replace(/^#\s+/, '').trim()
-  if (!title) return null
-
-  const slug = path.replace(/^recipes\//, '').replace(/\/recipe\.md$/i, '')
-  const separatorIndexes = lines
-    .map((line, index) => /^---\s*$/.test(line) ? index : -1)
-    .filter(index => index >= 0)
-
-  const firstSep = separatorIndexes[0]
-  const secondSep = separatorIndexes[1]
-  const bodyStart = secondSep >= 0 ? secondSep + 1 : 1
-
-  const body = lines.slice(bodyStart)
-  const sourceIndex = body.findIndex(line => /^Source:\s*$/i.test(line))
-  const recipeBody = sourceIndex >= 0 ? body.slice(0, sourceIndex) : body
-
-  const headingIndex = recipeBody.findIndex(line => /^#\s+/.test(line))
-  const titleIndex = headingIndex >= 0 ? headingIndex : 0
-  const meta = recipeBody.slice(titleIndex + 1)
-
-  const ingredientStart = meta.findIndex(line => /^\s*\*\s+/.test(line))
-  const numberedStart = meta.findIndex(line => /^\s*\d+\.\s+/.test(line))
-
-  let description = ''
-  let tags = []
-  let servings = null
-
-  if (ingredientStart > 0) {
-    const preIngredients = meta.slice(0, ingredientStart).map(s => s.trim()).filter(Boolean)
-    description = preIngredients.find(line => !/^[\wÀ-ÿ ,.-]+$/.test(line) || line.includes(',') || line.length > 20) || preIngredients[0] || ''
-    tags = preIngredients.find(line => line.includes(',') && line.length < 120)?.split(',').map(s => s.trim()).filter(Boolean) || []
-    const servingLine = preIngredients.find(line => /\b(serves?|servings?|portions?|g|kg|ml|l)\b/i.test(line))
-    const match = servingLine?.match(/(\d+(?:[.,]\d+)?)\s*(?:servings?|portions?)/i)
-    if (match) servings = Number(match[1].replace(',', '.'))
+/**
+ * Turn a RecipeMD document into the shape the views consume. A recipe that
+ * does not follow the specification is skipped rather than failing the whole
+ * download, so one bad file cannot take the cookbook down.
+ */
+export function toRecipe(markdown, path) {
+  let parsed
+  try {
+    parsed = parseRecipe(markdown)
+  } catch (error) {
+    if (error instanceof RecipeMDError) {
+      console.warn(`Skipping ${path}: ${error.message}`)
+      return null
+    }
+    throw error
   }
 
-  const ingredientLines = numberedStart > ingredientStart
-    ? meta.slice(ingredientStart, numberedStart)
-    : meta.slice(ingredientStart >= 0 ? ingredientStart : 0)
-
-  const ingredients = ingredientLines
-    .filter(line => /^\s*\*\s+/.test(line))
-    .map(line => parseIngredient(line.replace(/^\s*\*\s+/, '').trim()))
-    .filter(Boolean)
-
-  const instructionLines = numberedStart >= 0
-    ? meta.slice(numberedStart).filter(line => /^\s*\d+\.\s+/.test(line)).map(line => line.replace(/^\s*\d+\.\s+/, '').trim())
-    : []
-
-  const servingsFromYield = meta.join(' ').match(/(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l)\s+(?:de\s+)?/i)
-  if (!servings && servingsFromYield) servings = null
+  const slug = toSlug(path)
+  const { steps, sources } = splitInstructions(parsed.instructions)
 
   return {
     id: slug,
     slug,
-    title,
-    description,
-    tags,
-    servings,
-    ingredients,
-    instructions: instructionLines,
+    title: parsed.title,
+    description: parsed.description || '',
+    tags: parsed.tags,
+    yields: parsed.yields.map(amount => ({ ...amount, label: formatAmount(amount) })),
+    servings: toServings(parsed.yields),
+    ingredients: flattenIngredients(parsed).map(toIngredient),
+    steps,
+    sources,
+    instructions: parsed.instructions || '',
     sourcePath: path
   }
 }
 
-function parseIngredient(text) {
-  const normalized = text.replace(/\s+/g, ' ').trim()
-  const match = normalized.match(/^((?:\d+(?:[.,]\d+)?|\d+\s*\/\s*\d+|\d+\s+\d+\s*\/\s*\d+))\s*([a-zA-ZÀ-ÿµ%]+)?\s+(.+)$/)
+/** `recipes/pate-a-tartiner/recipe.md` becomes `pate-a-tartiner`. */
+function toSlug(path) {
+  return path
+    .replace(/^recipes\//i, '')
+    .replace(/\.md$/i, '')
+    .replace(/\/recipe$/i, '')
+    .replace(/\//g, '-')
+}
 
-  if (!match) {
-    return {
-      original: normalized,
-      quantity: null,
-      unit: '',
-      name: normalized,
-      scalable: false
-    }
-  }
-
-  const quantity = parseQuantity(match[1])
-  const unit = normalizeUnit(match[2] || '')
-  const name = match[3].trim()
+function toIngredient(ingredient) {
+  const quantity = ingredient.amount ? ingredient.amount.factor : null
 
   return {
-    original: normalized,
+    name: ingredient.name,
     quantity,
-    unit,
-    name,
-    scalable: Number.isFinite(quantity)
+    unit: ingredient.amount?.unit || '',
+    link: ingredient.link,
+    group: ingredient.group,
+    original: [ingredient.amount ? formatAmount(ingredient.amount) : '', ingredient.name].filter(Boolean).join(' '),
+    scalable: quantity !== null
   }
 }
 
-function parseQuantity(value) {
-  const clean = value.replace(',', '.').trim()
-  if (clean.includes(' ')) {
-    const [whole, fraction] = clean.split(/\s+/)
-    if (fraction?.includes('/')) {
-      const [a, b] = fraction.split('/').map(Number)
-      return Number(whole) + a / b
+/** The first yield expressed in eaters, e.g. `4 Servings`, if there is one. */
+function toServings(yields) {
+  const serving = yields.find(amount => amount.unit && SERVING_UNITS.test(amount.unit))
+  return serving ? serving.factor : null
+}
+
+export function formatAmount(amount) {
+  if (!amount) return ''
+  const rounded = Math.round(amount.factor * 1000) / 1000
+  return [rounded, amount.unit].filter(value => value || value === 0).join(' ')
+}
+
+/**
+ * The spec keeps the instructions as one markdown blob. Split it into steps for
+ * display, and peel off a trailing `Source:` block if the recipe has one.
+ */
+function splitInstructions(instructions) {
+  if (!instructions) return { steps: [], sources: [] }
+
+  const lines = instructions.split('\n')
+  const divider = lines.findIndex(line => /^\s*sources?\s*:?\s*$/i.test(line))
+  const body = divider >= 0 ? lines.slice(0, divider) : lines
+  const tail = divider >= 0 ? lines.slice(divider + 1) : []
+
+  return { steps: toSteps(body), sources: toSources(tail) }
+}
+
+const LIST_ITEM = /^\s*(?:[-+*]|\d{1,9}[.)])\s+(.*)$/
+
+function toSteps(lines) {
+  const items = []
+
+  for (const line of lines) {
+    const match = line.match(LIST_ITEM)
+    if (match) {
+      items.push(match[1].trim())
+    } else if (line.trim() && items.length) {
+      // A wrapped continuation of the previous step.
+      items[items.length - 1] += ` ${line.trim()}`
     }
   }
-  if (clean.includes('/')) {
-    const [a, b] = clean.split('/').map(Number)
-    return a / b
-  }
-  return Number(clean)
+
+  if (items.length) return items
+
+  // No list: fall back to one step per paragraph.
+  return lines
+    .join('\n')
+    .split(/\n\s*\n/)
+    .map(paragraph => paragraph.trim().replace(/\s*\n\s*/g, ' '))
+    .filter(Boolean)
 }
 
-function normalizeUnit(unit) {
-  const key = unit.toLowerCase()
-  const aliases = {
-    g: 'g',
-    kg: 'kg',
-    mg: 'mg',
-    ml: 'ml',
-    l: 'l',
-    cl: 'cl',
-    tbsp: 'tbsp',
-    tsp: 'tsp',
-    c: 'cup',
-    cups: 'cups',
-    cup: 'cup',
-    oz: 'oz',
-    lb: 'lb',
-    lbs: 'lb'
-  }
-  return aliases[key] || unit
+const MARKDOWN_LINK = /\[([^\]]*)\]\(\s*<?([^\s>)]+)>?[^)]*\)/
+
+function toSources(lines) {
+  return lines
+    .map(line => line.replace(LIST_ITEM, '$1').trim())
+    .filter(Boolean)
+    .map(text => {
+      const link = text.match(MARKDOWN_LINK)
+      if (link) return { title: link[1].trim() || link[2], url: link[2] }
+      if (/^https?:\/\//i.test(text)) return { title: text, url: text }
+      return { title: text, url: null }
+    })
 }

@@ -1,0 +1,18 @@
+{
+  "description": "```\n---\n- not an ingredient\n```",
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "egg",
+      "amount": {
+        "factor": 1,
+        "unit": null
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": "Cook it.",
+  "title": "Fenced"
+}

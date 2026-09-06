@@ -1,0 +1,26 @@
+{
+  "description": null,
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "tea\n  - not a new ingredient\n  - also part of the parent",
+      "amount": {
+        "factor": 1,
+        "unit": "cup"
+      },
+      "link": null
+    },
+    {
+      "name": "coffee",
+      "amount": {
+        "factor": 2,
+        "unit": "cup"
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": null,
+  "title": "Sublist"
+}

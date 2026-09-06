@@ -1,0 +1,170 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { downloadRecipes, formatAmount, getLatestSha, toRecipe } from '../../src/services/github.js'
+
+const FIXTURES = resolve(process.cwd(), 'test/fixtures/recipemd')
+const fullRecipe = readFileSync(resolve(FIXTURES, 'full-recipe.md'), 'utf8')
+const groups = readFileSync(resolve(FIXTURES, 'groups.md'), 'utf8')
+
+/** Routes fetch by URL so each test only declares the responses it cares about. */
+function stubFetch(routes) {
+  const fetch = vi.fn(async url => {
+    const match = Object.keys(routes).find(key => String(url).includes(key))
+    if (!match) return { ok: false, status: 404 }
+    const value = routes[match]
+    if (value instanceof Error) throw value
+    return {
+      ok: true,
+      status: 200,
+      json: async () => value,
+      text: async () => (typeof value === 'string' ? value : JSON.stringify(value))
+    }
+  })
+  vi.stubGlobal('fetch', fetch)
+  return fetch
+}
+
+const tree = (...paths) => ({
+  truncated: false,
+  tree: paths.map(path => ({ path, type: 'blob' }))
+})
+
+describe('toRecipe', () => {
+  it('maps a RecipeMD document onto the view shape', () => {
+    const recipe = toRecipe(fullRecipe, 'recipes/guacamole/recipe.md')
+
+    expect(recipe).toMatchObject({
+      id: 'guacamole',
+      slug: 'guacamole',
+      title: 'Guacamole',
+      description: 'Some people call it guac.',
+      tags: ['sauce', 'vegan'],
+      servings: 4,
+      sourcePath: 'recipes/guacamole/recipe.md'
+    })
+    expect(recipe.yields[0]).toMatchObject({ factor: 4, unit: 'Servings', label: '4 Servings' })
+    expect(recipe.steps).toEqual(['Remove flesh from avocado and roughly mash with fork.'])
+  })
+
+  it('flattens ingredients and records their group', () => {
+    const recipe = toRecipe(groups, 'recipes/cake/recipe.md')
+    expect(recipe.ingredients.map(item => [item.name, item.group])).toEqual([
+      ['salt', null], ['flour', 'Sponge'], ['eggs', 'Sponge'],
+      ['water', 'Sponge › Syrup'], ['sugar', 'Sponge › Glaze'], ['butter', 'Frosting']
+    ])
+  })
+
+  it('exposes quantity, unit and scalability per ingredient', () => {
+    const [avocado, salt, , lemon] = toRecipe(fullRecipe, 'recipes/guacamole/recipe.md').ingredients
+    expect(avocado).toMatchObject({ quantity: 1, unit: '', scalable: true, original: '1 avocado' })
+    expect(salt).toMatchObject({ quantity: 0.5, unit: 'teaspoon', scalable: true })
+    expect(lemon).toMatchObject({ quantity: null, unit: '', scalable: false, original: 'lemon juice' })
+  })
+
+  it.each([
+    ['recipes/pate-a-tartiner/recipe.md', 'pate-a-tartiner'],
+    ['recipes/desserts/tarte/recipe.md', 'desserts-tarte'],
+    ['recipes/quick.md', 'quick']
+  ])('derives the slug of %s', (path, slug) => {
+    expect(toRecipe(fullRecipe, path).slug).toBe(slug)
+  })
+
+  it('reads servings only from a yield expressed in eaters', () => {
+    const noServings = toRecipe('# X\n\n**600 g de pâte**\n\n---\n\n- *1* egg\n', 'recipes/x.md')
+    expect(noServings.servings).toBeNull()
+    expect(noServings.yields[0].label).toBe('600 g de pâte')
+
+    const french = toRecipe('# X\n\n**4 personnes**\n\n---\n\n- *1* egg\n', 'recipes/x.md')
+    expect(french.servings).toBe(4)
+  })
+
+  it('splits a trailing Source block off the instructions', () => {
+    const markdown = '# X\n\n---\n\n- *1* egg\n\n---\n\n1. Beat it\n1. Cook it\n\nSource:\n- [Blog](https://example.org/a)\n- https://example.org/b\n'
+    const recipe = toRecipe(markdown, 'recipes/x.md')
+
+    expect(recipe.steps).toEqual(['Beat it', 'Cook it'])
+    expect(recipe.sources).toEqual([
+      { title: 'Blog', url: 'https://example.org/a' },
+      { title: 'https://example.org/b', url: 'https://example.org/b' }
+    ])
+  })
+
+  it('falls back to paragraphs when instructions are not a list', () => {
+    const recipe = toRecipe('# X\n\n---\n\n- *1* egg\n\n---\n\nFirst do this.\n\nThen do that.\n', 'recipes/x.md')
+    expect(recipe.steps).toEqual(['First do this.', 'Then do that.'])
+  })
+
+  it('returns null for a document that is not valid RecipeMD', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    expect(toRecipe('not a recipe', 'recipes/bad.md')).toBeNull()
+    expect(console.warn).toHaveBeenCalled()
+  })
+})
+
+describe('formatAmount', () => {
+  it.each([
+    [{ factor: 200, unit: 'g' }, '200 g'],
+    [{ factor: 1, unit: null }, '1'],
+    [{ factor: 1 / 3, unit: 'l' }, '0.333 l'],
+    [null, '']
+  ])('formats %o', (amount, expected) => {
+    expect(formatAmount(amount)).toBe(expected)
+  })
+})
+
+describe('getLatestSha', () => {
+  it('returns the head commit sha', async () => {
+    stubFetch({ '/commits/main': { sha: 'deadbeef' } })
+    expect(await getLatestSha()).toBe('deadbeef')
+  })
+
+  it('throws on a failed response', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 503 })))
+    await expect(getLatestSha()).rejects.toThrow(/503/)
+  })
+})
+
+describe('downloadRecipes', () => {
+  it('downloads every markdown file under recipes/', async () => {
+    stubFetch({
+      '/git/trees/': tree('README.md', 'recipes/a/recipe.md', 'recipes/b/recipe.md', 'LICENSE'),
+      'recipes/a/recipe.md': fullRecipe,
+      'recipes/b/recipe.md': groups
+    })
+
+    const recipes = await downloadRecipes()
+    expect(recipes.map(item => item.slug).sort()).toEqual(['a', 'b'])
+  })
+
+  it('ignores files outside recipes/', async () => {
+    stubFetch({ '/git/trees/': tree('README.md', 'docs/notes.md'), 'x': '' })
+    expect(await downloadRecipes()).toEqual([])
+  })
+
+  it('skips a malformed recipe instead of failing the batch', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    stubFetch({
+      '/git/trees/': tree('recipes/good/recipe.md', 'recipes/bad/recipe.md'),
+      'recipes/good/recipe.md': fullRecipe,
+      'recipes/bad/recipe.md': 'no title here'
+    })
+
+    const recipes = await downloadRecipes()
+    expect(recipes).toHaveLength(1)
+    expect(recipes[0].slug).toBe('good')
+  })
+
+  it('refuses a truncated tree rather than showing a partial cookbook', async () => {
+    stubFetch({ '/git/trees/': { truncated: true, tree: [] } })
+    await expect(downloadRecipes()).rejects.toThrow(/truncated/i)
+  })
+
+  it('reports a file that cannot be downloaded', async () => {
+    vi.stubGlobal('fetch', vi.fn(async url =>
+      String(url).includes('/git/trees/')
+        ? { ok: true, json: async () => tree('recipes/a/recipe.md') }
+        : { ok: false, status: 500 }))
+    await expect(downloadRecipes()).rejects.toThrow(/Unable to download/)
+  })
+})

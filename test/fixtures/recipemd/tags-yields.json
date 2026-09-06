@@ -1,0 +1,30 @@
+{
+  "description": null,
+  "tags": [
+    "dessert",
+    "quick"
+  ],
+  "yields": [
+    {
+      "factor": 1.5,
+      "unit": "l"
+    },
+    {
+      "factor": 4,
+      "unit": "Servings"
+    }
+  ],
+  "ingredients": [
+    {
+      "name": "egg",
+      "amount": {
+        "factor": 1,
+        "unit": null
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": null,
+  "title": "Order"
+}

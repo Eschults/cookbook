@@ -1,0 +1,84 @@
+{
+  "description": null,
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "salt",
+      "amount": {
+        "factor": 1,
+        "unit": "pinch"
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [
+    {
+      "title": "Sponge",
+      "ingredients": [
+        {
+          "name": "flour",
+          "amount": {
+            "factor": 200,
+            "unit": "g"
+          },
+          "link": null
+        },
+        {
+          "name": "eggs",
+          "amount": {
+            "factor": 4,
+            "unit": null
+          },
+          "link": null
+        }
+      ],
+      "groups": [
+        {
+          "title": "Syrup",
+          "ingredients": [
+            {
+              "name": "water",
+              "amount": {
+                "factor": 50,
+                "unit": "ml"
+              },
+              "link": null
+            }
+          ],
+          "groups": []
+        },
+        {
+          "title": "Glaze",
+          "ingredients": [
+            {
+              "name": "sugar",
+              "amount": {
+                "factor": 20,
+                "unit": "g"
+              },
+              "link": null
+            }
+          ],
+          "groups": []
+        }
+      ]
+    },
+    {
+      "title": "Frosting",
+      "ingredients": [
+        {
+          "name": "butter",
+          "amount": {
+            "factor": 300,
+            "unit": "g"
+          },
+          "link": null
+        }
+      ],
+      "groups": []
+    }
+  ],
+  "instructions": null,
+  "title": "Layer cake"
+}

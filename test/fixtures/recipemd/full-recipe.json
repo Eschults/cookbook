@@ -1,0 +1,51 @@
+{
+  "description": "Some people call it guac.",
+  "tags": [
+    "sauce",
+    "vegan"
+  ],
+  "yields": [
+    {
+      "factor": 4,
+      "unit": "Servings"
+    },
+    {
+      "factor": 200,
+      "unit": "g"
+    }
+  ],
+  "ingredients": [
+    {
+      "name": "avocado",
+      "amount": {
+        "factor": 1,
+        "unit": null
+      },
+      "link": null
+    },
+    {
+      "name": "salt",
+      "amount": {
+        "factor": 0.5,
+        "unit": "teaspoon"
+      },
+      "link": null
+    },
+    {
+      "name": "red pepper flakes",
+      "amount": {
+        "factor": 1.5,
+        "unit": "pinches"
+      },
+      "link": null
+    },
+    {
+      "name": "lemon juice",
+      "amount": null,
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": "Remove flesh from avocado and roughly mash with fork.",
+  "title": "Guacamole"
+}

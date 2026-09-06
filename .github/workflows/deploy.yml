@@ -1,9 +1,14 @@
 name: Deploy to GitHub Pages
 
+# Deploys only after the Test workflow has finished green on the same commit.
+# There is deliberately no workflow_dispatch trigger: a manual run could not
+# prove the tests passed. To redeploy, re-run this workflow from the Actions
+# tab, or re-run the Test workflow for the commit you want shipped.
 on:
-  push:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,10 +21,13 @@ concurrency:
 
 jobs:
   build:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout the exact commit that passed the tests
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -28,7 +36,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build

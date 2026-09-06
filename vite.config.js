@@ -5,6 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/',
+  define: {
+    // Composition API only: keeps the deprecated Legacy API out of the bundle.
+    __VUE_I18N_LEGACY_API__: false,
+    __INTLIFY_PROD_DEVTOOLS__: false
+  },
   plugins: [
     vue(),
     tailwindcss(),

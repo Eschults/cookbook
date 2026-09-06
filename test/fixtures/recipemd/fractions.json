@@ -1,0 +1,74 @@
+{
+  "description": null,
+  "tags": [],
+  "yields": [],
+  "ingredients": [
+    {
+      "name": "coffee",
+      "amount": {
+        "factor": 1.5,
+        "unit": "cup"
+      },
+      "link": null
+    },
+    {
+      "name": "water",
+      "amount": {
+        "factor": 0.42857142857142855,
+        "unit": "l"
+      },
+      "link": null
+    },
+    {
+      "name": "salt",
+      "amount": {
+        "factor": 0.5,
+        "unit": "tsp"
+      },
+      "link": null
+    },
+    {
+      "name": "flour",
+      "amount": {
+        "factor": 1.5,
+        "unit": "kg"
+      },
+      "link": null
+    },
+    {
+      "name": "milk",
+      "amount": {
+        "factor": 0.5,
+        "unit": "l"
+      },
+      "link": null
+    },
+    {
+      "name": "sugar",
+      "amount": {
+        "factor": 41.9,
+        "unit": "g"
+      },
+      "link": null
+    },
+    {
+      "name": "correction",
+      "amount": {
+        "factor": -2,
+        "unit": "g"
+      },
+      "link": null
+    },
+    {
+      "name": "unitless",
+      "amount": {
+        "factor": 3,
+        "unit": null
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": null,
+  "title": "Fractions"
+}
