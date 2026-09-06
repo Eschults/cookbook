@@ -72,6 +72,34 @@ describe('RecipeIndexView', () => {
     expect(headings[0].text()).toBe('Recettes')
   })
 
+  it('focuses the search field on load', async () => {
+    const view = await mountView(RecipeIndexView, { props: { recipes }, attachTo: document.body })
+    expect(document.activeElement).toBe(view.find('#recipe-search').element)
+    view.unmount()
+  })
+
+  it('focuses the search field when / is pressed elsewhere on the page', async () => {
+    const view = await mountView(RecipeIndexView, { props: { recipes }, attachTo: document.body })
+    document.body.focus()
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '/', cancelable: true }))
+    expect(document.activeElement).toBe(view.find('#recipe-search').element)
+    view.unmount()
+  })
+
+  it('leaves / alone while a field already has focus, so it can still be typed', async () => {
+    const view = await mountView(RecipeIndexView, { props: { recipes }, attachTo: document.body })
+    const input = view.find('#recipe-search')
+    await input.setValue('Tarte')
+    input.element.focus()
+
+    const event = new KeyboardEvent('keydown', { key: '/', cancelable: true })
+    window.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(false)
+    view.unmount()
+  })
+
   it('follows the active locale', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
     expect(view.text()).toContain('3 ingrédients')

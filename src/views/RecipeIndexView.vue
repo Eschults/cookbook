@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale } from '../composables/useLocale.js'
 import RecipeCard from '../components/RecipeCard.vue'
@@ -9,6 +9,7 @@ const { t } = useI18n()
 const { collator } = useLocale()
 const query = ref('')
 const tag = ref('')
+const searchInput = ref(null)
 
 const tags = computed(() => [...new Set(props.recipes.flatMap(recipe => recipe.tags || []))].sort(collator.value.compare))
 
@@ -20,6 +21,25 @@ const filtered = computed(() => {
     return matchesText && matchesTag
   })
 })
+
+/**
+ * `/` is a common "jump to search" shortcut (Slack, GitHub…). It is ignored
+ * while another field already has focus, so it still types a literal slash
+ * there instead of stealing it.
+ */
+function focusOnSlash(event) {
+  if (event.key !== '/') return
+  const { tagName, isContentEditable } = document.activeElement || {}
+  if (tagName === 'INPUT' || tagName === 'TEXTAREA' || isContentEditable) return
+  event.preventDefault()
+  searchInput.value?.focus()
+}
+
+onMounted(() => {
+  searchInput.value?.focus()
+  window.addEventListener('keydown', focusOnSlash)
+})
+onUnmounted(() => window.removeEventListener('keydown', focusOnSlash))
 </script>
 
 <template>
@@ -29,7 +49,7 @@ const filtered = computed(() => {
       <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('nav.recipes') }}</h1>
       <div class="w-full sm:max-w-sm">
         <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
-        <input id="recipe-search" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-200 transition focus:ring-4" />
+        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-200 transition focus:ring-4" />
       </div>
     </div>
 

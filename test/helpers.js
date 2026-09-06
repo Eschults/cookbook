@@ -9,13 +9,14 @@ import { routes } from '../src/router.js'
  * The i18n singleton is shared on purpose: useLocale() mutates it directly, so
  * a per-test instance would leave components and the composable disagreeing.
  */
-export async function mountView(component, { props = {}, route = '/' } = {}) {
+export async function mountView(component, { props = {}, route = '/', attachTo } = {}) {
   const router = createRouter({ history: createMemoryHistory(), routes })
   await router.push(route)
   await router.isReady()
 
   return mount(component, {
     props,
+    attachTo,
     global: { plugins: [i18n, router] }
   })
 }
