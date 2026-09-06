@@ -27,7 +27,7 @@ if (cached?.recipes?.length) {
 }
 
 export function useRecipes() {
-  async function refresh(force = false) {
+  async function refresh() {
     if (loading.value) return
     loading.value = true
     error.value = ''
@@ -35,7 +35,7 @@ export function useRecipes() {
     try {
       const latestSha = await getLatestSha()
 
-      if (!force && latestSha === cachedSha.value && downloaded.value.length) {
+      if (latestSha === cachedSha.value && downloaded.value.length) {
         return
       }
 

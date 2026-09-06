@@ -16,8 +16,6 @@ export default {
     loadingHint: 'Checking GitHub for the latest cookbook.',
     errorTitle: 'Couldn’t load the recipes',
     tryAgain: 'Try again',
-    refreshing: 'Refreshing…',
-    refresh: 'Refresh',
     unknownError: 'Unknown error',
     language: 'Language',
     viewSource: 'View source on GitHub',

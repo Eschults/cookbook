@@ -66,15 +66,6 @@ describe('refresh', () => {
     expect(store.recipes.value.map(r => r.title)).toEqual(['Zulu'])
   })
 
-  it('re-downloads on a forced refresh even when the sha matches', async () => {
-    const { store, github: gh } = await reloadWithCache({ sha: 'sha1', recipes: [alpha] })
-    gh.getLatestSha.mockResolvedValue('sha1')
-    gh.downloadRecipes.mockResolvedValue([zulu])
-
-    await store.refresh(true)
-    expect(gh.downloadRecipes).toHaveBeenCalled()
-  })
-
   it('will not run two refreshes at once', async () => {
     github.getLatestSha.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve('sha1'), 5)))
     github.downloadRecipes.mockResolvedValue([alpha])

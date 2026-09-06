@@ -16,8 +16,6 @@ export default {
     loadingHint: 'Recherche de la dernière version sur GitHub.',
     errorTitle: 'Impossible de charger les recettes',
     tryAgain: 'Réessayer',
-    refreshing: 'Actualisation…',
-    refresh: 'Actualiser',
     unknownError: 'Erreur inconnue',
     language: 'Langue',
     viewSource: 'Voir le code source sur GitHub',

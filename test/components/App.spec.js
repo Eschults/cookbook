@@ -92,19 +92,6 @@ describe('App', () => {
     expect(link.attributes('target')).toBe('_blank')
   })
 
-  it('refreshes on demand from the footer without tearing down the page', async () => {
-    const app = await mountApp()
-    const refresh = app.findAll('button').find(b => b.attributes('aria-label') === 'Actualiser')
-
-    await refresh.trigger('click')
-    // The recipes stay mounted through a background refresh: only the
-    // full-screen loader that would collapse the page and reset scroll
-    // is gated behind having no cached recipes yet.
-    expect(app.text()).toContain('Guacamole')
-    await flushPromises()
-    expect(github.downloadRecipes).toHaveBeenCalledTimes(2)
-  })
-
   it('switches locale from the footer and persists it', async () => {
     const app = await mountApp()
     const en = app.findAll('button').find(b => b.text() === 'en')
@@ -113,7 +100,6 @@ describe('App', () => {
     await flushPromises()
 
     expect(app.text()).toContain('Recipes')
-    expect(app.findAll('button').find(b => b.attributes('aria-label') === 'Refresh')).toBeTruthy()
     expect(localStorage.getItem('cookbook:locale:v1')).toBe('en')
     expect(document.documentElement.lang).toBe('en')
   })

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useRecipes } from './composables/useRecipes.js'
@@ -13,7 +13,6 @@ const { itemCount, menuCount } = useShoppingList()
 const { locale, locales, setLocale } = useLocale()
 const { t } = useI18n()
 const route = useRoute()
-const refreshing = ref(false)
 
 /** This app's own source, as opposed to `repositoryUrl`, which points at the recipe data. */
 const cookbookRepositoryUrl = 'https://github.com/ssaunier/cookbook'
@@ -28,20 +27,6 @@ const tabs = computed(() => [
   { to: '/menu', name: 'menu', label: t('nav.menu'), count: menuCount.value },
   { to: '/shopping-list', name: 'shopping', label: t('nav.list'), count: itemCount.value }
 ])
-
-const MIN_REFRESH_DURATION_MS = 1000
-
-async function refreshRecipes() {
-  refreshing.value = true
-  const startedAt = Date.now()
-  try {
-    await refresh(true)
-  } finally {
-    const elapsed = Date.now() - startedAt
-    if (elapsed < MIN_REFRESH_DURATION_MS) await new Promise(resolve => setTimeout(resolve, MIN_REFRESH_DURATION_MS - elapsed))
-    refreshing.value = false
-  }
-}
 
 onMounted(() => refresh())
 </script>
@@ -89,7 +74,7 @@ onMounted(() => refresh())
       <div v-else-if="error && !recipes.length" class="mx-auto max-w-xl rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-900">
         <h1 class="font-bold">{{ t('app.errorTitle') }}</h1>
         <p class="mt-2 text-sm leading-6">{{ error }}</p>
-        <button @click="refreshRecipes" class="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700">
+        <button @click="refresh" class="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700">
           {{ t('app.tryAgain') }}
         </button>
       </div>
@@ -117,14 +102,8 @@ onMounted(() => refresh())
           :href="`${repositoryUrl}/commit/${cachedSha}`"
           target="_blank"
           rel="noreferrer"
-          :class="['font-mono transition duration-300 hover:text-slate-600', refreshing ? 'pointer-events-none opacity-40 blur-[1.5px]' : 'opacity-100 blur-0']"
+          class="font-mono hover:text-slate-600"
         >{{ cachedSha.slice(0, 7) }}</a>
-        <button type="button" @click="refreshRecipes" :disabled="refreshing" :aria-label="refreshing ? t('app.refreshing') : t('app.refresh')" :title="refreshing ? t('app.refreshing') : t('app.refresh')" class="hover:text-slate-600 disabled:opacity-50">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" :class="['size-4', refreshing && 'animate-spin']">
-            <path d="M20.5 12a8.5 8.5 0 1 1-2.3-5.8" />
-            <path d="M20.5 3.5v5h-5" />
-          </svg>
-        </button>
         <nav :aria-label="t('app.language')" class="ml-auto flex items-center gap-1">
           <button
             v-for="code in locales"
