@@ -1,8 +1,14 @@
 name: Test
 
+# Runs on its own for pull requests and for pushes to any branch but main.
+# On main the suite runs as the first job of the deploy workflow instead, via
+# workflow_call, so the build cannot start unless the tests pass on that exact
+# commit — and both show up as checks on the commit itself.
 on:
-  push:
   pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_call:
 
 jobs:
   test:
