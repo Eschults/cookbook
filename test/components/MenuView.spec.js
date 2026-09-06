@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MenuView from '../../src/views/MenuView.vue'
 import { useShoppingList } from '../../src/composables/useShoppingList.js'
 import { makeRecipe, mountView } from '../helpers.js'
@@ -6,7 +6,6 @@ import { makeRecipe, mountView } from '../helpers.js'
 const list = useShoppingList()
 
 beforeEach(() => list.clearList())
-afterEach(() => vi.unstubAllGlobals())
 
 const clearAll = view => view.findAll('button').find(button => button.text() === 'Tout effacer')
 

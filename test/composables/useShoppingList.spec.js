@@ -10,13 +10,14 @@ beforeEach(async () => {
 })
 
 describe('addRecipe', () => {
-  it('adds one row per ingredient and counts them', () => {
+  it('adds one unchecked row per ingredient and counts them', () => {
     const list = useShoppingList()
     list.addRecipe(makeRecipe(), 1)
 
     expect(list.shoppingList.value).toHaveLength(3)
     expect(list.totalCount.value).toBe(3)
     expect(list.itemCount.value).toBe(3)
+    expect(list.shoppingList.value.every(item => !item.checked)).toBe(true)
   })
 
   it('scales measurable quantities by the multiplier', () => {
@@ -27,13 +28,6 @@ describe('addRecipe', () => {
     expect(byName('avocado').quantity).toBe(2.5)
     expect(byName('salt').quantity).toBe(1.25)
     expect(byName('lemon juice').quantity).toBeNull()
-  })
-
-  it('marks every row unchecked to start', () => {
-    const list = useShoppingList()
-    list.addRecipe(makeRecipe(), 3)
-
-    expect(list.shoppingList.value.every(item => !item.checked)).toBe(true)
   })
 
   it('gives every row a unique id', () => {

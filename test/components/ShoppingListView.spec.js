@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ShoppingListView from '../../src/views/ShoppingListView.vue'
 import { useShoppingList } from '../../src/composables/useShoppingList.js'
 import { i18n } from '../../src/i18n/index.js'
@@ -10,10 +10,6 @@ const list = useShoppingList()
 const greengrocer = [ingredient('zucchini', 2), ingredient('échalote', 1), ingredient('ail', 3)]
 
 beforeEach(() => list.clearList())
-afterEach(() => {
-  vi.unstubAllGlobals()
-  vi.restoreAllMocks()
-})
 
 describe('ShoppingListView', () => {
   it('shows the empty state', async () => {
@@ -37,10 +33,11 @@ describe('ShoppingListView', () => {
     expect(view.text()).toContain('3 au total')
   })
 
-  it('checks an item off', async () => {
+  it('checks an item off, and only once', async () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
+    // The row handler must not fire as well, or the item would toggle back.
     await view.find('[aria-label="Cocher l’article"]').trigger('click')
     expect(list.itemCount.value).toBe(2)
     expect(view.text()).toContain('2 restants')
@@ -54,15 +51,6 @@ describe('ShoppingListView', () => {
     // The click handler lives on the row's content div, not the <li> itself,
     // since the <li> also hosts the swipe-to-delete overlay on mobile.
     await view.find('li > div').trigger('click')
-    expect(list.itemCount.value).toBe(2)
-  })
-
-  it('toggles only once when the checkbox itself is clicked', async () => {
-    list.addRecipe(makeRecipe(), 1)
-    const view = await mountView(ShoppingListView)
-
-    // The row handler must not fire as well, or the item would toggle back.
-    await view.find('[aria-label="Cocher l’article"]').trigger('click')
     expect(list.itemCount.value).toBe(2)
   })
 
@@ -80,21 +68,14 @@ describe('ShoppingListView', () => {
     expect(list.shoppingList.value).toHaveLength(2)
   })
 
-  it('keeps the item when the confirmation is dismissed', async () => {
+  it('keeps the item, unchecked, when the confirmation is dismissed', async () => {
     vi.stubGlobal('confirm', vi.fn(() => false))
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
     await view.find('button.sm\\:inline-block').trigger('click')
     expect(list.shoppingList.value).toHaveLength(3)
-  })
-
-  it('does not check the item off while removing it', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => false))
-    list.addRecipe(makeRecipe(), 1)
-    const view = await mountView(ShoppingListView)
-
-    await view.find('button.sm\\:inline-block').trigger('click')
+    // The row's own click handler must not have fired behind the button.
     expect(list.itemCount.value).toBe(3)
   })
 
