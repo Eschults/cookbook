@@ -58,7 +58,7 @@ onMounted(() => refresh())
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+    <main class="mx-auto max-w-6xl px-4 pt-4 pb-6 sm:px-6 sm:pt-6 sm:pb-10">
       <!-- Once recipes are on screen, a background refresh must not tear the
            page down to this full-screen state: that swap is what was
            collapsing the page and throwing the scroll position back to the
