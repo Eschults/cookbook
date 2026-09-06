@@ -6,7 +6,7 @@ import { useRecipes } from './composables/useRecipes.js'
 import { useShoppingList } from './composables/useShoppingList.js'
 import { useLocale } from './composables/useLocale.js'
 import BrandMark from './components/BrandMark.vue'
-import { repositoryLabel, repositoryUrl } from './config.js'
+import { repositoryUrl } from './config.js'
 
 const { recipes, loading, error, refresh, cachedSha } = useRecipes()
 const { itemCount, menuCount } = useShoppingList()

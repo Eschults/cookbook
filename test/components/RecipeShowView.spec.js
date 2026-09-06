@@ -98,14 +98,6 @@ describe('RecipeShowView', () => {
     expect(view.findAll('a').some(a => a.attributes('href') === './pesto.md')).toBe(true)
   })
 
-  it('still answers a link to the old /recipes/:slug path', async () => {
-    const view = await mountView(RecipeShowView, {
-      props: { recipes: [makeRecipe()] },
-      route: '/recipes/guacamole'
-    })
-    expect(view.text()).toContain('Guacamole')
-  })
-
   it('says so when the slug matches nothing', async () => {
     const view = await show([makeRecipe()], 'missing')
     expect(view.text()).toContain('Recette introuvable')

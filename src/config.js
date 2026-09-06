@@ -21,7 +21,4 @@ export const recipesRepo = {
   directory: 'recipes'
 }
 
-/** `owner/repo`, as shown in the footer. */
-export const repositoryLabel = `${recipesRepo.owner}/${recipesRepo.repo}`
-
-export const repositoryUrl = `https://github.com/${repositoryLabel}`
+export const repositoryUrl = `https://github.com/${recipesRepo.owner}/${recipesRepo.repo}`

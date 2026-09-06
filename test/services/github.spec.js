@@ -133,7 +133,6 @@ describe('source repository configuration', () => {
   // The whole point of src/config.js: a fork edits it and nothing else.
   const forked = {
     recipesRepo: { owner: 'octocat', repo: 'dishes', branch: 'trunk', directory: 'plats' },
-    repositoryLabel: 'octocat/dishes',
     repositoryUrl: 'https://github.com/octocat/dishes'
   }
 

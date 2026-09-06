@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { recipesRepo, repositoryLabel, repositoryUrl } from '../src/config.js'
+import { recipesRepo, repositoryUrl } from '../src/config.js'
 
 // A fork redirects the app by editing src/config.js and nothing else, so these
 // guard the shape the rest of the code destructures.
@@ -14,7 +14,6 @@ describe('config', () => {
   })
 
   it('derives the footer link from it', () => {
-    expect(repositoryLabel).toBe(`${recipesRepo.owner}/${recipesRepo.repo}`)
-    expect(repositoryUrl).toBe(`https://github.com/${repositoryLabel}`)
+    expect(repositoryUrl).toBe(`https://github.com/${recipesRepo.owner}/${recipesRepo.repo}`)
   })
 })
