@@ -5,9 +5,17 @@ A small read-only Vue 3 cookbook for the [`ssaunier/recipes`](https://github.com
 [cookbook.saunier.me](https://cookbook.saunier.me).
 
 There is no backend. The app reads the recipe repository straight from the GitHub API in
-the browser, parses the RecipeMD documents client-side, and keeps the result in
-`localStorage` until the repository's HEAD commit changes. The UI is available in French
-(default) and English, and it can scale a recipe into a shopping list.
+the browser, parses the RecipeMD documents client-side, and caches the result in
+`localStorage` until the repository's HEAD commit changes — or until the app itself is
+redeployed, since the cache is also stamped with the build's git commit and a cache left
+over from an older build is treated as empty. The UI is available in French (default) and
+English, and it can scale a recipe into a shopping list.
+
+The recipe cache is disposable: GitHub is the only source of truth for it, so it is safe
+to drop and re-fetch at any time. The meal plan and shopping list are a separate,
+purely local store — which recipes are planned, their multipliers, and which items are
+checked off or excluded — and never duplicate a recipe's own content, so they survive
+both cache refreshes and app deploys untouched.
 
 ## Running it
 
@@ -20,6 +28,7 @@ npm run dev
 | --- | --- |
 | `npm run dev` | Vite dev server |
 | `npm run build` | Production build into `dist/` |
+| `npm run preview` | Serve the production build locally |
 | `npm test` | Full Vitest suite |
 | `npm run test:watch` | The suite in watch mode |
 | `npm run coverage` | Coverage report |
@@ -100,15 +109,18 @@ has nothing to publish to.
 
 ```
 src/
-  config.js            source repository — the one file a fork needs to edit
+  config.js                 source repository — the one file a fork needs to edit
   services/
-    recipemd.js        RecipeMD 2.4.0 parser, written from the specification
-    github.js          GitHub API client and the recipe shape the views consume
-    storage.js         localStorage: recipe cache and locale
-  composables/         shared state: recipes, shopping list, locale
-  i18n/                fr.js / en.js message catalogues
-  views/               one per route
-test/                  Vitest suite, mirroring src/
+    recipemd.js             RecipeMD 2.4.0 parser, written from the specification
+    github.js               GitHub API client and the recipe shape the views consume
+    markdown.js             inline RecipeMD (bold, links…) rendered to safe HTML via `marked`
+    units.js                unit canonicalisation, so the shopping list merges "500 g"/"500 cL"
+    ingredientExclusions.js pantry staples (water, salt, pepper…) that never reach the list
+    storage.js              localStorage: recipe cache, menu/shopping-list state, and locale
+  composables/              shared state: recipes, shopping list, locale
+  i18n/                     fr.js / en.js message catalogues
+  views/                    one per route
+test/                       Vitest suite, mirroring src/
 ```
 
 The parser is the interesting part: it implements the specification directly rather than
@@ -116,7 +128,9 @@ guessing at the format, including ingredient groups, fractions and unicode vulga
 decimal commas, link ingredients and the invalid cases the spec calls out. It was
 developed against the official RecipeMD conformance suite and passed all 30 of its cases,
 but those fixtures are LGPL-3.0 and are deliberately not vendored here — the committed
-fixtures in `test/fixtures/recipemd/` are our own.
+fixtures in `test/fixtures/recipemd/` are our own. `recipemd.js` only turns markdown into
+structured data; rendering the inline markdown *within* a field (an ingredient name, an
+instruction step) back out to HTML is `markdown.js`'s job, via `marked`'s lexer.
 
 ## License
 
