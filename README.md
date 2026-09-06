@@ -117,3 +117,8 @@ decimal commas, link ingredients and the invalid cases the spec calls out. It wa
 developed against the official RecipeMD conformance suite and passed all 30 of its cases,
 but those fixtures are LGPL-3.0 and are deliberately not vendored here — the committed
 fixtures in `test/fixtures/recipemd/` are our own.
+
+## License
+
+[MIT](LICENSE) © Sébastien Saunier. The recipes themselves live in a separate repository
+and are not covered by it.
