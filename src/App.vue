@@ -18,9 +18,16 @@ const refreshing = ref(false)
 /** This app's own source, as opposed to `repositoryUrl`, which points at the recipe data. */
 const cookbookRepositoryUrl = 'https://github.com/ssaunier/cookbook'
 
-const isHome = computed(() => route.name === 'recipes')
-const isShopping = computed(() => route.name === 'shopping')
-const isMenu = computed(() => route.name === 'menu')
+/**
+ * The three top-level destinations and the counter each one carries. The
+ * recipe count is the size of the cookbook rather than something you added,
+ * so it stays grey while the other two use the accent colour.
+ */
+const tabs = computed(() => [
+  { to: '/', name: 'recipes', label: t('nav.recipes'), count: recipes.value.length, muted: true },
+  { to: '/menu', name: 'menu', label: t('nav.menu'), count: menuCount.value },
+  { to: '/shopping-list', name: 'shopping', label: t('nav.list'), count: itemCount.value }
+])
 
 const MIN_REFRESH_DURATION_MS = 1000
 
@@ -56,9 +63,12 @@ onMounted(() => refresh())
         </RouterLink>
 
         <nav class="flex items-center gap-1 rounded-2xl bg-slate-100 p-1">
-          <RouterLink to="/" :class="['rounded-xl px-3 py-2 text-sm font-semibold', isHome ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900']">{{ t('nav.recipes') }} <span v-if="recipes.length" class="ml-1 text-slate-400">{{ recipes.length }}</span></RouterLink>
-          <RouterLink to="/menu" :class="['rounded-xl px-3 py-2 text-sm font-semibold', isMenu ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900']">{{ t('nav.menu') }} <span v-if="menuCount" class="ml-1 text-blue-600">{{ menuCount }}</span></RouterLink>
-          <RouterLink to="/shopping-list" :class="['rounded-xl px-3 py-2 text-sm font-semibold', isShopping ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900']">{{ t('nav.list') }} <span v-if="itemCount" class="ml-1 text-blue-600">{{ itemCount }}</span></RouterLink>
+          <RouterLink
+            v-for="tab in tabs"
+            :key="tab.name"
+            :to="tab.to"
+            :class="['rounded-xl px-3 py-2 text-sm font-semibold', route.name === tab.name ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900']"
+          >{{ tab.label }} <span v-if="tab.count" :class="['ml-1', tab.muted ? 'text-slate-400' : 'text-blue-600']">{{ tab.count }}</span></RouterLink>
         </nav>
       </div>
     </header>

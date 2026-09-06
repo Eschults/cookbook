@@ -67,7 +67,8 @@ function canonicalUnit(unit) {
  */
 export function toBaseAmount(quantity, unit) {
   const grams = GRAMS_PER_UNIT[canonicalUnit(unit)]
-  if (!grams || quantity == null) return { quantity, unit: grams ? 'g' : unit }
+  if (!grams) return { quantity, unit }
+  if (quantity == null) return { quantity, unit: 'g' }
   return { quantity: quantity * grams, unit: 'g' }
 }
 
@@ -80,4 +81,18 @@ export function toDisplayAmount(quantity, unit) {
     return { quantity: quantity / KILO_THRESHOLD, unit: 'kg' }
   }
   return { quantity, unit }
+}
+
+/** Decimals kept when an amount is written out. */
+const PRECISION = 1000
+
+/**
+ * An amount as a recipe writes it: a rounded figure followed by its unit, if
+ * it has one. A missing quantity formats as nothing at all, so a caller can
+ * pass one straight through without a guard of its own.
+ */
+export function formatAmount(quantity, unit) {
+  if (quantity == null) return ''
+  const rounded = Math.round(quantity * PRECISION) / PRECISION
+  return [rounded, unit].filter(value => value || value === 0).join(' ')
 }

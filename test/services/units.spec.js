@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toBaseAmount, toDisplayAmount } from '../../src/services/units.js'
+import { formatAmount, toBaseAmount, toDisplayAmount } from '../../src/services/units.js'
 
 describe('toBaseAmount', () => {
   it('leaves grams alone', () => {
@@ -47,5 +47,18 @@ describe('toDisplayAmount', () => {
   it('leaves other units alone', () => {
     expect(toDisplayAmount(4, '')).toEqual({ quantity: 4, unit: '' })
     expect(toDisplayAmount(2000, 'oeufs')).toEqual({ quantity: 2000, unit: 'oeufs' })
+  })
+})
+
+describe('formatAmount', () => {
+  it.each([
+    [200, 'g', '200 g'],
+    [1, null, '1'],
+    [4, '', '4'],
+    [0, 'g', '0 g'],
+    [1 / 3, 'l', '0.333 l'],
+    [null, 'g', '']
+  ])('formats %s %s', (quantity, unit, expected) => {
+    expect(formatAmount(quantity, unit)).toBe(expected)
   })
 })

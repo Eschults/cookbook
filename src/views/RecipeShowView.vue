@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import AddToShoppingListDialog from '../components/AddToShoppingListDialog.vue'
 import { useShoppingList } from '../composables/useShoppingList.js'
 import { renderInline } from '../services/markdown.js'
+import { formatAmount } from '../services/units.js'
 
 const props = defineProps({ recipes: { type: Array, required: true } })
 const route = useRoute()
@@ -26,12 +27,6 @@ const groups = computed(() => {
   }
   return result
 })
-
-function formatQuantity(ingredient) {
-  if (ingredient.quantity == null) return ''
-  const rounded = Math.round(ingredient.quantity * 1000) / 1000
-  return `${rounded} ${ingredient.unit}`.trim()
-}
 
 function added(multiplier) {
   addRecipe(recipe.value, multiplier)
@@ -75,7 +70,7 @@ function added(multiplier) {
                 <div class="flex gap-3">
                   <span class="mt-2 size-2 shrink-0 rounded-full bg-blue-500"></span>
                   <div>
-                    <span v-if="ingredient.quantity != null" class="font-bold text-slate-900">{{ formatQuantity(ingredient) }}</span>
+                    <span v-if="ingredient.quantity != null" class="font-bold text-slate-900">{{ formatAmount(ingredient.quantity, ingredient.unit) }}</span>
                     <span v-else class="font-bold text-slate-500">{{ t('recipe.asNeeded') }}</span>
                     <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" class="markdown ml-1 text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800" v-html="renderInline(ingredient.name)"></a>
                     <span v-else class="markdown ml-1 text-slate-600" v-html="renderInline(ingredient.name)"></span>

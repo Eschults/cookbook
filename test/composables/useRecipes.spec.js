@@ -20,6 +20,20 @@ beforeEach(async () => {
 const alpha = makeRecipe({ slug: 'a', title: 'Alpha' })
 const zulu = makeRecipe({ slug: 'z', title: 'Zulu' })
 
+/**
+ * Seeds the cache and re-imports the composable, the way a page load finds
+ * it. The cache is read once at import, so a test that writes to
+ * localStorage after importing would be seeding a store nobody re-reads.
+ * Re-importing hands back a fresh github mock too, which the caller arms.
+ */
+async function reloadWithCache(cache) {
+  localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify(cache))
+  vi.resetModules()
+  const composable = await import('../../src/composables/useRecipes.js')
+  const mocked = await import('../../src/services/github.js')
+  return { store: composable.useRecipes(), github: mocked }
+}
+
 describe('refresh', () => {
   it('downloads and caches when there is no cache', async () => {
     github.getLatestSha.mockResolvedValue('sha1')
@@ -34,32 +48,31 @@ describe('refresh', () => {
   })
 
   it('does not re-download when the cached sha still matches', async () => {
-    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'sha1', recipes: [alpha] }))
-    github.getLatestSha.mockResolvedValue('sha1')
+    const { store, github: gh } = await reloadWithCache({ sha: 'sha1', recipes: [alpha] })
+    gh.getLatestSha.mockResolvedValue('sha1')
 
-    await useRecipes().refresh()
-    expect(github.downloadRecipes).not.toHaveBeenCalled()
+    await store.refresh()
+    expect(gh.downloadRecipes).not.toHaveBeenCalled()
   })
 
   it('re-downloads when the remote sha has moved on', async () => {
-    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'old', recipes: [alpha] }))
-    github.getLatestSha.mockResolvedValue('new')
-    github.downloadRecipes.mockResolvedValue([zulu])
+    const { store, github: gh } = await reloadWithCache({ sha: 'old', recipes: [alpha] })
+    gh.getLatestSha.mockResolvedValue('new')
+    gh.downloadRecipes.mockResolvedValue([zulu])
 
-    const { recipes, refresh } = useRecipes()
-    await refresh()
+    await store.refresh()
 
-    expect(github.downloadRecipes).toHaveBeenCalled()
-    expect(recipes.value.map(r => r.title)).toEqual(['Zulu'])
+    expect(gh.downloadRecipes).toHaveBeenCalled()
+    expect(store.recipes.value.map(r => r.title)).toEqual(['Zulu'])
   })
 
   it('re-downloads on a forced refresh even when the sha matches', async () => {
-    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'sha1', recipes: [alpha] }))
-    github.getLatestSha.mockResolvedValue('sha1')
-    github.downloadRecipes.mockResolvedValue([zulu])
+    const { store, github: gh } = await reloadWithCache({ sha: 'sha1', recipes: [alpha] })
+    gh.getLatestSha.mockResolvedValue('sha1')
+    gh.downloadRecipes.mockResolvedValue([zulu])
 
-    await useRecipes().refresh(true)
-    expect(github.downloadRecipes).toHaveBeenCalled()
+    await store.refresh(true)
+    expect(gh.downloadRecipes).toHaveBeenCalled()
   })
 
   it('will not run two refreshes at once', async () => {
@@ -84,17 +97,13 @@ describe('failure handling', () => {
   })
 
   it('stays quiet when cached recipes are already on screen', async () => {
-    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'old', recipes: [alpha] }))
-    vi.resetModules()
-    const { useRecipes: fresh } = await import('../../src/composables/useRecipes.js')
-    const gh = await import('../../src/services/github.js')
+    const { store, github: gh } = await reloadWithCache({ sha: 'old', recipes: [alpha] })
     gh.getLatestSha.mockRejectedValue(new Error('offline'))
 
-    const { error, refresh, recipes } = fresh()
-    await refresh()
+    await store.refresh()
 
-    expect(error.value).toBe('')
-    expect(recipes.value).toHaveLength(1)
+    expect(store.error.value).toBe('')
+    expect(store.recipes.value).toHaveLength(1)
   })
 
   it('falls back to a translated message when the error has none', async () => {
@@ -128,10 +137,8 @@ describe('ordering', () => {
   })
 
   it('sorts cached recipes on read, not at download time', async () => {
-    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'sha1', recipes: [zulu, alpha] }))
-    vi.resetModules()
-    const { useRecipes: fresh } = await import('../../src/composables/useRecipes.js')
+    const { store } = await reloadWithCache({ sha: 'sha1', recipes: [zulu, alpha] })
 
-    expect(fresh().recipes.value.map(r => r.title)).toEqual(['Alpha', 'Zulu'])
+    expect(store.recipes.value.map(r => r.title)).toEqual(['Alpha', 'Zulu'])
   })
 })

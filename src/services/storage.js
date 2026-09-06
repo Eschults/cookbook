@@ -1,6 +1,6 @@
-// Bumped whenever the parsed recipe shape changes, so stale caches are dropped.
 import { LOCALES } from '../i18n/locales.js'
 
+// Bumped whenever the parsed recipe shape changes, so stale caches are dropped.
 const CACHE_KEY = 'cookbook:recipe-cache:v2'
 const STATE_KEY = 'cookbook:app-state:v1'
 const LOCALE_KEY = 'cookbook:locale:v1'

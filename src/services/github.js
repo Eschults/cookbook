@@ -1,4 +1,5 @@
 import { parseRecipe, flattenIngredients, RecipeMDError } from './recipemd.js'
+import { formatAmount } from './units.js'
 import { recipesRepo } from '../config.js'
 
 const { owner, repo, branch, directory } = recipesRepo
@@ -74,7 +75,7 @@ export function toRecipe(markdown, path) {
     title: parsed.title,
     description: parsed.description || '',
     tags: parsed.tags,
-    yields: parsed.yields.map(amount => ({ ...amount, label: formatAmount(amount) })),
+    yields: parsed.yields.map(amount => ({ ...amount, label: formatAmount(amount.factor, amount.unit) })),
     servings: toServings(parsed.yields),
     ingredients: flattenIngredients(parsed).map(toIngredient),
     steps,
@@ -106,12 +107,6 @@ function toIngredient(ingredient) {
 function toServings(yields) {
   const serving = yields.find(amount => amount.unit && SERVING_UNITS.test(amount.unit))
   return serving ? serving.factor : null
-}
-
-export function formatAmount(amount) {
-  if (!amount) return ''
-  const rounded = Math.round(amount.factor * 1000) / 1000
-  return [rounded, amount.unit].filter(value => value || value === 0).join(' ')
 }
 
 /**

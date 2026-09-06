@@ -17,7 +17,9 @@ const recipes = computed(() =>
   [...downloaded.value].sort((a, b) => collator.value.compare(a.title, b.title))
 )
 
-// Hydrate from the cache once, at import, like useShoppingList does.
+// Hydrate from the cache once, at import, like useShoppingList does. This is
+// the only read: from here on `downloaded` and `cachedSha` are what the cache
+// holds, so refresh() compares against them rather than reading it again.
 const cached = loadRecipeCache()
 if (cached?.recipes?.length) {
   downloaded.value = cached.recipes
@@ -31,16 +33,9 @@ export function useRecipes() {
     error.value = ''
 
     try {
-      const cache = loadRecipeCache()
-      cachedSha.value = cache?.sha || ''
-
-      if (!force && cache?.recipes?.length) {
-        downloaded.value = cache.recipes
-      }
-
       const latestSha = await getLatestSha()
 
-      if (!force && cache?.sha === latestSha && cache.recipes?.length) {
+      if (!force && latestSha === cachedSha.value && downloaded.value.length) {
         return
       }
 

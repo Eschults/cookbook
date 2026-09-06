@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { downloadRecipes, formatAmount, getLatestSha, toRecipe } from '../../src/services/github.js'
+import { downloadRecipes, getLatestSha, toRecipe } from '../../src/services/github.js'
 
 const FIXTURES = resolve(process.cwd(), 'test/fixtures/recipemd')
 const fullRecipe = readFileSync(resolve(FIXTURES, 'full-recipe.md'), 'utf8')
@@ -173,17 +173,6 @@ describe('source repository configuration', () => {
     const github = await import('../../src/services/github.js')
 
     expect((await github.downloadRecipes()).map(item => item.slug)).toEqual(['anywhere-a'])
-  })
-})
-
-describe('formatAmount', () => {
-  it.each([
-    [{ factor: 200, unit: 'g' }, '200 g'],
-    [{ factor: 1, unit: null }, '1'],
-    [{ factor: 1 / 3, unit: 'l' }, '0.333 l'],
-    [null, '']
-  ])('formats %o', (amount, expected) => {
-    expect(formatAmount(amount)).toBe(expected)
   })
 })
 

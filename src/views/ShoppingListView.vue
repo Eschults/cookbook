@@ -121,9 +121,7 @@ function formatQuantity(item) {
            narrow screen forces them onto their own line. -->
       <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <p class="text-slate-500">{{ t('list.remaining', { n: itemCount }) }} · {{ t('list.total', { n: totalCount }) }}</p>
-        <div class="ml-auto flex gap-2">
-          <button v-if="shoppingList.length" @click="confirmClear" class="rounded-xl px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50">{{ t('common.clearAll') }}</button>
-        </div>
+        <button v-if="shoppingList.length" @click="confirmClear" class="ml-auto rounded-xl px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50">{{ t('common.clearAll') }}</button>
       </div>
     </div>
 

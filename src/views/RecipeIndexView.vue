@@ -25,10 +25,8 @@ const filtered = computed(() => {
 <template>
   <section>
     <div class="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-      <div>
-        <!-- Shares the nav label on purpose: one string, one translation. -->
-        <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('nav.recipes') }}</h1>
-      </div>
+      <!-- Shares the nav label on purpose: one string, one translation. -->
+      <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('nav.recipes') }}</h1>
       <div class="w-full sm:max-w-sm">
         <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
         <input id="recipe-search" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-200 transition focus:ring-4" />
