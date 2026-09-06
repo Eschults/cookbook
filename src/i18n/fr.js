@@ -4,6 +4,7 @@ export default {
     remove: 'Retirer',
     cancel: 'Annuler',
     close: 'Fermer',
+    clearAll: 'Tout effacer',
     shoppingList: 'Liste de courses',
     servings: '{n} personne | {n} personnes'
   },
@@ -18,7 +19,9 @@ export default {
     refreshing: 'Actualisation…',
     refresh: 'Actualiser',
     unknownError: 'Erreur inconnue',
-    language: 'Langue'
+    language: 'Langue',
+    viewSource: 'Voir le code source sur GitHub',
+    viewRecipes: 'Voir les recettes sur GitHub'
   },
 
   nav: {
@@ -28,7 +31,6 @@ export default {
   },
 
   index: {
-    count: '{n} recette de la collection RecipeMD. | {n} recettes de la collection RecipeMD.',
     searchLabel: 'Rechercher des recettes',
     searchPlaceholder: 'Rechercher des recettes…',
     all: 'Toutes',
@@ -56,25 +58,20 @@ export default {
     heading: 'Liste de courses',
     remaining: '{n} restant | {n} restants',
     total: '{n} au total',
-    clearChecked: 'Effacer les articles cochés',
-    clearAll: 'Tout effacer',
     emptyTitle: 'Votre panier est vide',
     emptyHint: 'Ajoutez une recette et ajustez-la au nombre de convives.',
     check: 'Cocher l’article',
     confirmRemove: 'Retirer {name} de la liste de courses ?',
     confirmClear: 'Effacer toute la liste de courses ?',
-    uncheck: 'Décocher l’article',
-    group: {
-      measured: 'Articles mesurés',
-      other: 'Autres'
-    }
+    uncheck: 'Décocher l’article'
   },
 
   menu: {
     heading: 'Menu',
-    subtitle: 'Les recettes derrière votre liste de courses actuelle.',
+    count: '{n} repas prévu | {n} repas prévus',
     openRecipe: 'Ouvrir la recette',
     stale: 'Cette recette n’est plus présente dans le dépôt source.',
+    confirmClear: 'Effacer tout le menu et la liste de courses ?',
     emptyTitle: 'Aucune recette à votre menu',
     emptyHint: 'Lorsque vous ajoutez une recette à votre liste de courses, elle apparaît ici.'
   },

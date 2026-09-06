@@ -28,22 +28,22 @@ describe('recipe cache', () => {
 
 describe('app state', () => {
   it('round trips', () => {
-    saveAppState({ shoppingList: [{ id: 'a' }], menu: [{ recipeId: 'r' }] })
-    expect(loadAppState()).toEqual({ shoppingList: [{ id: 'a' }], menu: [{ recipeId: 'r' }] })
+    saveAppState({ menu: [{ recipeId: 'r' }], checked: { 'beurre g': 123 }, excluded: ['sel '] })
+    expect(loadAppState()).toEqual({ menu: [{ recipeId: 'r' }], checked: { 'beurre g': 123 }, excluded: ['sel '] })
   })
 
-  it('defaults both collections to arrays', () => {
-    expect(loadAppState()).toEqual({ shoppingList: [], menu: [] })
+  it('defaults every collection', () => {
+    expect(loadAppState()).toEqual({ menu: [], checked: {}, excluded: [] })
   })
 
   it('repairs a stored value of the wrong shape', () => {
-    localStorage.setItem('cookbook:app-state:v1', JSON.stringify({ shoppingList: 'nope' }))
-    expect(loadAppState()).toEqual({ shoppingList: [], menu: [] })
+    localStorage.setItem('cookbook:app-state:v1', JSON.stringify({ menu: 'nope', checked: 'nope', excluded: 'nope' }))
+    expect(loadAppState()).toEqual({ menu: [], checked: {}, excluded: [] })
   })
 
   it('survives corrupt JSON', () => {
     localStorage.setItem('cookbook:app-state:v1', 'x')
-    expect(loadAppState()).toEqual({ shoppingList: [], menu: [] })
+    expect(loadAppState()).toEqual({ menu: [], checked: {}, excluded: [] })
   })
 })
 

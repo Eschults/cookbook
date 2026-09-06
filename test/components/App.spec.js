@@ -47,6 +47,24 @@ describe('App', () => {
     expect(app.text()).toContain('abc1234')
   })
 
+  it('shows the recipe count in the nav, in grey rather than the counter blue', async () => {
+    const app = await mountApp()
+    const badge = app.find('nav a[href="/"] span')
+
+    expect(badge.text()).toBe('1')
+    expect(badge.classes()).toContain('text-slate-400')
+    expect(badge.classes()).not.toContain('text-blue-600')
+  })
+
+  it('keeps only the brand mark in the header on a narrow screen', async () => {
+    const app = await mountApp()
+    const brand = app.find('header a[href="/"]')
+
+    expect(brand.attributes('aria-label')).toBe('Cookbook')
+    // The wordmark is hidden below the `sm` breakpoint so the counters fit.
+    expect(brand.find('div.hidden.sm\\:block').text()).toContain('Cookbook')
+  })
+
   it('shows an error banner and can retry', async () => {
     github.getLatestSha.mockRejectedValueOnce(new Error('network down'))
     const app = await mountApp()
@@ -61,17 +79,28 @@ describe('App', () => {
 
   it('links the source repository from the footer', async () => {
     const app = await mountApp()
-    const link = app.findAll('a').find(a => a.text() === 'ssaunier/recipes')
+    const link = app.findAll('a').find(a => a.attributes('href') === 'https://github.com/ssaunier/recipes')
 
-    expect(link.attributes('href')).toBe('https://github.com/ssaunier/recipes')
     expect(link.attributes('rel')).toBe('noreferrer')
   })
 
-  it('refreshes on demand from the footer', async () => {
+  it('links the cache marker to the commit on GitHub', async () => {
     const app = await mountApp()
-    const refresh = app.findAll('button').find(b => b.text() === 'Actualiser')
+    const link = app.findAll('a').find(a => a.text() === 'abc1234')
+
+    expect(link.attributes('href')).toBe('https://github.com/ssaunier/recipes/commit/abc1234def')
+    expect(link.attributes('target')).toBe('_blank')
+  })
+
+  it('refreshes on demand from the footer without tearing down the page', async () => {
+    const app = await mountApp()
+    const refresh = app.findAll('button').find(b => b.attributes('aria-label') === 'Actualiser')
 
     await refresh.trigger('click')
+    // The recipes stay mounted through a background refresh: only the
+    // full-screen loader that would collapse the page and reset scroll
+    // is gated behind having no cached recipes yet.
+    expect(app.text()).toContain('Guacamole')
     await flushPromises()
     expect(github.downloadRecipes).toHaveBeenCalledTimes(2)
   })
@@ -84,7 +113,7 @@ describe('App', () => {
     await flushPromises()
 
     expect(app.text()).toContain('Recipes')
-    expect(app.text()).toContain('Refresh')
+    expect(app.findAll('button').find(b => b.attributes('aria-label') === 'Refresh')).toBeTruthy()
     expect(localStorage.getItem('cookbook:locale:v1')).toBe('en')
     expect(document.documentElement.lang).toBe('en')
   })

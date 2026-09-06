@@ -4,6 +4,7 @@ export default {
     remove: 'Remove',
     cancel: 'Cancel',
     close: 'Close',
+    clearAll: 'Clear all',
     shoppingList: 'Shopping list',
     servings: '{n} serving | {n} servings'
   },
@@ -18,7 +19,9 @@ export default {
     refreshing: 'Refreshing…',
     refresh: 'Refresh',
     unknownError: 'Unknown error',
-    language: 'Language'
+    language: 'Language',
+    viewSource: 'View source on GitHub',
+    viewRecipes: 'View the recipes on GitHub'
   },
 
   nav: {
@@ -28,7 +31,6 @@ export default {
   },
 
   index: {
-    count: '{n} recipe from the RecipeMD collection. | {n} recipes from the RecipeMD collection.',
     searchLabel: 'Search recipes',
     searchPlaceholder: 'Search recipes…',
     all: 'All',
@@ -56,25 +58,20 @@ export default {
     heading: 'Shopping list',
     remaining: '{n} remaining | {n} remaining',
     total: '{n} total',
-    clearChecked: 'Clear checked',
-    clearAll: 'Clear all',
     emptyTitle: 'Your cart is empty',
     emptyHint: 'Add a recipe and scale it for the number of people you’re feeding.',
     check: 'Check item',
     confirmRemove: 'Remove {name} from the shopping list?',
     confirmClear: 'Clear the whole shopping list?',
-    uncheck: 'Uncheck item',
-    group: {
-      measured: 'Measured items',
-      other: 'Other'
-    }
+    uncheck: 'Uncheck item'
   },
 
   menu: {
     heading: 'Menu',
-    subtitle: 'The recipes behind your current shopping list.',
+    count: '{n} meal planned | {n} meals planned',
     openRecipe: 'Open recipe',
     stale: 'Recipe is no longer present in the source repository.',
+    confirmClear: 'Clear the whole menu and the shopping list?',
     emptyTitle: 'No recipes in your menu',
     emptyHint: 'When you add a recipe to your shopping list, it will appear here.'
   },

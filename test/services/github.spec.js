@@ -6,6 +6,7 @@ import { downloadRecipes, formatAmount, getLatestSha, toRecipe } from '../../src
 const FIXTURES = resolve(process.cwd(), 'test/fixtures/recipemd')
 const fullRecipe = readFileSync(resolve(FIXTURES, 'full-recipe.md'), 'utf8')
 const groups = readFileSync(resolve(FIXTURES, 'groups.md'), 'utf8')
+const groupedInstructions = readFileSync(resolve(FIXTURES, 'grouped-instructions.md'), 'utf8')
 
 /** Routes fetch by URL so each test only declares the responses it cares about. */
 function stubFetch(routes) {
@@ -88,6 +89,32 @@ describe('toRecipe', () => {
       { title: 'Blog', url: 'https://example.org/a' },
       { title: 'https://example.org/b', url: 'https://example.org/b' }
     ])
+  })
+
+  it('groups the steps under the headings of the instructions', () => {
+    const recipe = toRecipe(groupedInstructions, 'recipes/canneles-t80/recipe.md')
+
+    expect(recipe.stepGroups.map(group => [group.title, group.steps.length]))
+      .toEqual([['Pâte', 5], ['Cuisson', 3]])
+    expect(recipe.stepGroups[1].steps[0]).toBe('Préchauffer le four à 250°C')
+    expect(recipe.steps).toHaveLength(8)
+    // The divider before the sources is a separator, not the tail of a step.
+    expect(recipe.steps.at(-1)).toBe('Baisser à 175°C et cuire 1h')
+    expect(recipe.sources.map(source => source.title))
+      .toEqual(['Boulangerie Pas à Pas', 'Youtube Video'])
+  })
+
+  it('keeps the markdown of an ingredient whose link is only part of the line', () => {
+    const recipe = toRecipe(groupedInstructions, 'recipes/canneles-t80/recipe.md')
+    const slider = recipe.ingredients.at(-1)
+
+    expect(slider.link).toBeNull()
+    expect(slider.name).toContain('[agent de graîssage _Slider_](https://www.laboetgato.fr/')
+  })
+
+  it('puts ungrouped instructions in a single untitled group', () => {
+    const recipe = toRecipe(fullRecipe, 'recipes/guacamole/recipe.md')
+    expect(recipe.stepGroups).toEqual([{ title: null, steps: recipe.steps }])
   })
 
   it('falls back to paragraphs when instructions are not a list', () => {

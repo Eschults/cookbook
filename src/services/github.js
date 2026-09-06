@@ -68,7 +68,7 @@ export function toRecipe(markdown, path) {
   }
 
   const slug = toSlug(path)
-  const { steps, sources } = splitInstructions(parsed.instructions)
+  const { steps, stepGroups, sources } = splitInstructions(parsed.instructions)
 
   return {
     id: slug,
@@ -80,6 +80,7 @@ export function toRecipe(markdown, path) {
     servings: toServings(parsed.yields),
     ingredients: flattenIngredients(parsed).map(toIngredient),
     steps,
+    stepGroups,
     sources,
     instructions: parsed.instructions || '',
     sourcePath: path
@@ -124,21 +125,51 @@ export function formatAmount(amount) {
 /**
  * The spec keeps the instructions as one markdown blob. Split it into steps for
  * display, and peel off a trailing `Source:` block if the recipe has one.
+ *
+ * `steps` is the flat list of every step in reading order; `stepGroups` is the
+ * same steps arranged under the headings that introduced them, so a recipe
+ * written as `## Pâte` / `## Cuisson` keeps those stages apart. A recipe with
+ * no headings yields a single untitled group.
  */
 function splitInstructions(instructions) {
-  if (!instructions) return { steps: [], sources: [] }
+  if (!instructions) return { steps: [], stepGroups: [], sources: [] }
 
   const lines = instructions.split('\n')
   const divider = lines.findIndex(line => /^\s*sources?\s*:?\s*$/i.test(line))
   const body = divider >= 0 ? lines.slice(0, divider) : lines
   const tail = divider >= 0 ? lines.slice(divider + 1) : []
 
-  return { steps: toSteps(body), sources: toSources(tail) }
+  const stepGroups = toStepGroups(body)
+
+  return {
+    steps: stepGroups.flatMap(group => group.steps),
+    stepGroups,
+    sources: toSources(tail)
+  }
 }
 
 const LIST_ITEM = /^\s*(?:[-+*]|\d{1,9}[.)])\s+(.*)$/
+const HEADING = /^ {0,3}#{1,6}[ \t]+(.*?)[ \t]*#*[ \t]*$/
+/** A divider inside the instructions separates sections; it is never content. */
+const DIVIDER = /^ {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$/
 
-function toSteps(lines) {
+/** Cut the instructions at each heading, then read the steps of every section. */
+function toStepGroups(lines) {
+  const sections = [{ title: null, lines: [] }]
+
+  for (const line of lines) {
+    const heading = line.match(HEADING)
+    if (heading) sections.push({ title: heading[1].trim(), lines: [] })
+    else sections[sections.length - 1].lines.push(line)
+  }
+
+  return sections
+    .map(section => ({ title: section.title, steps: toSteps(section.lines) }))
+    .filter(section => section.steps.length)
+}
+
+function toSteps(allLines) {
+  const lines = allLines.filter(line => !DIVIDER.test(line))
   const items = []
 
   for (const line of lines) {

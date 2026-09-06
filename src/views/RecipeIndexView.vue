@@ -28,7 +28,6 @@ const filtered = computed(() => {
       <div>
         <!-- Shares the nav label on purpose: one string, one translation. -->
         <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('nav.recipes') }}</h1>
-        <p class="mt-2 max-w-2xl text-slate-500">{{ t('index.count', { n: recipes.length }) }}</p>
       </div>
       <div class="w-full sm:max-w-sm">
         <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
@@ -42,13 +41,13 @@ const filtered = computed(() => {
     </div>
 
     <div v-if="filtered.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <RouterLink v-for="recipe in filtered" :key="recipe.id" :to="`/recipes/${recipe.slug}`" class="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+      <RouterLink v-for="recipe in filtered" :key="recipe.id" :to="`/r/${recipe.slug}`" class="group min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
         <div class="mb-5 flex items-start justify-between gap-3">
           <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">{{ t('index.ingredients', { n: recipe.ingredients.length }) }}</span>
           <span class="text-xl transition group-hover:rotate-6">🍽️</span>
         </div>
         <h2 class="text-xl font-black text-slate-900">{{ recipe.title }}</h2>
-        <p v-if="recipe.description" class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">{{ recipe.description }}</p>
+        <p v-if="recipe.description" class="mt-2 truncate text-sm leading-6 text-slate-500">{{ recipe.description }}</p>
         <div v-if="recipe.tags?.length" class="mt-4 flex flex-wrap gap-1.5">
           <span v-for="item in recipe.tags.slice(0, 3)" :key="item" class="text-xs font-semibold text-slate-400">#{{ item }}</span>
         </div>

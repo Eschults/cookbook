@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MenuView from '../../src/views/MenuView.vue'
 import { useShoppingList } from '../../src/composables/useShoppingList.js'
 import { makeRecipe, mountView } from '../helpers.js'
@@ -6,6 +6,9 @@ import { makeRecipe, mountView } from '../helpers.js'
 const list = useShoppingList()
 
 beforeEach(() => list.clearList())
+afterEach(() => vi.unstubAllGlobals())
+
+const clearAll = view => view.findAll('button').find(button => button.text() === 'Tout effacer')
 
 describe('MenuView', () => {
   it('shows the empty state', async () => {
@@ -18,8 +21,18 @@ describe('MenuView', () => {
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
     expect(view.text()).toContain('Guacamole')
+    expect(view.find('a[href="/r/guacamole"]').exists()).toBe(true)
     expect(view.text()).toContain('×2')
-    expect(view.find('a[href="/recipes/guacamole"]').exists()).toBe(true)
+  })
+
+  it('counts the planned meals', async () => {
+    const view = await mountView(MenuView, { props: { recipes: [] } })
+    expect(view.text()).toContain('0 repas prévu')
+
+    list.addRecipe(makeRecipe(), 1)
+    list.addRecipe(makeRecipe({ id: 'soup', slug: 'soup', title: 'Soup' }), 1)
+    const planned = await mountView(MenuView, { props: { recipes: [] } })
+    expect(planned.text()).toContain('2 repas prévus')
   })
 
   it('flags a recipe that has left the source repository', async () => {
@@ -27,7 +40,32 @@ describe('MenuView', () => {
     const view = await mountView(MenuView, { props: { recipes: [] } })
 
     expect(view.text()).toContain('n’est plus présente dans le dépôt source')
-    expect(view.find('a[href="/recipes/guacamole"]').exists()).toBe(false)
+    expect(view.find('a[href="/r/guacamole"]').exists()).toBe(false)
+  })
+
+  it('offers no clear-all button while the menu is empty', async () => {
+    const view = await mountView(MenuView, { props: { recipes: [] } })
+    expect(clearAll(view)).toBeUndefined()
+  })
+
+  it('clears the menu and the list once the prompt is accepted', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true))
+    list.addRecipe(makeRecipe(), 1)
+    const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
+
+    await clearAll(view).trigger('click')
+    expect(window.confirm).toHaveBeenCalledWith('Effacer tout le menu et la liste de courses ?')
+    expect(list.state.menu).toEqual([])
+    expect(list.shoppingList.value).toEqual([])
+  })
+
+  it('keeps the menu when the prompt is declined', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => false))
+    list.addRecipe(makeRecipe(), 1)
+    const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
+
+    await clearAll(view).trigger('click')
+    expect(list.state.menu).toHaveLength(1)
   })
 
   it('removes a recipe from the menu and the list together', async () => {
@@ -36,6 +74,6 @@ describe('MenuView', () => {
 
     await view.findAll('button').find(b => b.text() === 'Retirer').trigger('click')
     expect(list.state.menu).toEqual([])
-    expect(list.state.shoppingList).toEqual([])
+    expect(list.shoppingList.value).toEqual([])
   })
 })

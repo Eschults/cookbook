@@ -21,11 +21,12 @@ export function loadAppState() {
   try {
     const value = JSON.parse(localStorage.getItem(STATE_KEY) || '{}')
     return {
-      shoppingList: Array.isArray(value.shoppingList) ? value.shoppingList : [],
-      menu: Array.isArray(value.menu) ? value.menu : []
+      menu: Array.isArray(value.menu) ? value.menu : [],
+      checked: value.checked && typeof value.checked === 'object' ? value.checked : {},
+      excluded: Array.isArray(value.excluded) ? value.excluded : []
     }
   } catch {
-    return { shoppingList: [], menu: [] }
+    return { menu: [], checked: {}, excluded: [] }
   }
 }
 

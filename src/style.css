@@ -22,6 +22,28 @@ button {
   cursor: pointer;
 }
 
+/*
+ * Inline markdown rendered through `v-html` (see services/markdown.js) cannot
+ * carry utility classes, so the handful of tags it can emit are styled here.
+ */
+.markdown a {
+  color: var(--color-blue-700);
+  text-decoration: underline;
+  text-decoration-color: var(--color-blue-300);
+  text-underline-offset: 2px;
+}
+
+.markdown a:hover {
+  color: var(--color-blue-800);
+}
+
+.markdown code {
+  font-size: 0.9em;
+  border-radius: var(--radius-md);
+  background: var(--color-slate-100);
+  padding: 0.1em 0.35em;
+}
+
 ::selection {
   background: #fde68a;
   color: #172033;

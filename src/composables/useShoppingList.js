@@ -5,42 +5,77 @@ const state = reactive(loadAppState())
 
 function persist() {
   saveAppState({
-    shoppingList: state.shoppingList,
-    menu: state.menu
+    menu: state.menu,
+    checked: state.checked,
+    excluded: state.excluded
   })
 }
 
+/** Identifies the same thing to buy across recipes: two recipes that both want butter share one row. */
+const itemKey = (name, unit) => `${name} ${unit}`
+
 export function useShoppingList() {
-  const itemCount = computed(() => state.shoppingList.filter(item => !item.checked).length)
-  const totalCount = computed(() => state.shoppingList.length)
+  /**
+   * The list is rebuilt from the menu's recipes on every read instead of
+   * being stored as its own snapshot. That is what lets two different
+   * recipes that both need butter collapse onto a single row with the
+   * summed quantity — a snapshot-per-recipe only ever merged an ingredient
+   * against itself, so the same ingredient coming from two recipes produced
+   * two separate lines.
+   */
+  const shoppingList = computed(() => {
+    const rows = new Map()
+    for (const entry of state.menu) {
+      for (const ingredient of entry.ingredients) {
+        const key = itemKey(ingredient.name, ingredient.unit)
+        if (state.excluded.includes(key)) continue
+        const quantity = ingredient.quantity == null ? null : ingredient.quantity * entry.multiplier
+        const existing = rows.get(key)
+        if (existing) {
+          if (quantity != null) existing.quantity = (existing.quantity ?? 0) + quantity
+        } else {
+          rows.set(key, {
+            id: key,
+            name: ingredient.name,
+            unit: ingredient.unit,
+            quantity,
+            checked: Boolean(state.checked[key]),
+            checkedAt: state.checked[key] || null
+          })
+        }
+      }
+    }
+    return [...rows.values()]
+  })
+
+  const itemCount = computed(() => shoppingList.value.filter(item => !item.checked).length)
+  const totalCount = computed(() => shoppingList.value.length)
   const menuCount = computed(() => state.menu.length)
 
+  /**
+   * Adding a recipe that is already on the menu raises its multiplier
+   * instead of listing its ingredients a second time, and refreshes the
+   * ingredient snapshot to whatever the recipe currently declares.
+   */
   function addRecipe(recipe, multiplier) {
-    const entryId = `${recipe.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    const items = recipe.ingredients.map((ingredient, index) => ({
-      id: `${entryId}-${index}`,
-      recipeId: recipe.id,
-      recipeTitle: recipe.title,
-      multiplier,
-      original: ingredient.original,
+    const entry = state.menu.find(item => item.recipeId === recipe.id)
+    const ingredients = recipe.ingredients.map(ingredient => ({
       name: ingredient.name,
-      quantity: ingredient.quantity == null ? null : ingredient.quantity * multiplier,
       unit: ingredient.unit || '',
-      checked: false,
-      scalable: ingredient.scalable !== false
+      quantity: ingredient.quantity
     }))
 
-    state.shoppingList.push(...items)
-
-    const existing = state.menu.find(item => item.recipeId === recipe.id)
-    if (existing) {
-      existing.multiplier += multiplier
-      existing.addedAt = new Date().toISOString()
+    if (entry) {
+      entry.multiplier += multiplier
+      entry.ingredients = ingredients
+      entry.recipeTitle = recipe.title
+      entry.addedAt = new Date().toISOString()
     } else {
       state.menu.push({
         recipeId: recipe.id,
         recipeTitle: recipe.title,
         multiplier,
+        ingredients,
         addedAt: new Date().toISOString()
       })
     }
@@ -49,44 +84,39 @@ export function useShoppingList() {
   }
 
   function toggleItem(id) {
-    const item = state.shoppingList.find(item => item.id === id)
-    if (item) {
-      item.checked = !item.checked
-      persist()
-    }
-  }
-
-  function removeItem(id) {
-    state.shoppingList = state.shoppingList.filter(item => item.id !== id)
+    if (state.checked[id]) delete state.checked[id]
+    else state.checked[id] = Date.now()
     persist()
   }
 
-  function clearChecked() {
-    state.shoppingList = state.shoppingList.filter(item => !item.checked)
+  /** Excludes the ingredient from the derived list, e.g. because it's already in the pantry. */
+  function removeItem(id) {
+    if (!state.excluded.includes(id)) state.excluded.push(id)
+    delete state.checked[id]
     persist()
   }
 
   function clearList() {
-    state.shoppingList = []
     state.menu = []
+    state.checked = {}
+    state.excluded = []
     persist()
   }
 
   function removeRecipe(recipeId) {
-    state.shoppingList = state.shoppingList.filter(item => item.recipeId !== recipeId)
     state.menu = state.menu.filter(item => item.recipeId !== recipeId)
     persist()
   }
 
   return {
     state,
+    shoppingList,
     itemCount,
     totalCount,
     menuCount,
     addRecipe,
     toggleItem,
     removeItem,
-    clearChecked,
     clearList,
     removeRecipe
   }

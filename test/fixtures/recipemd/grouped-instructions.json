@@ -1,0 +1,79 @@
+{
+  "title": "Cannelés T80",
+  "description": "Pâtisserie Bordelaise, version Labo & Gato (Cassonade)",
+  "tags": [],
+  "yields": [
+    {
+      "factor": 12,
+      "unit": "cannelés"
+    }
+  ],
+  "ingredients": [
+    {
+      "name": "lait",
+      "amount": {
+        "factor": 500,
+        "unit": "cL"
+      },
+      "link": null
+    },
+    {
+      "name": "sucre cassonade",
+      "amount": {
+        "factor": 520,
+        "unit": "g"
+      },
+      "link": null
+    },
+    {
+      "name": "beurre",
+      "amount": {
+        "factor": 65,
+        "unit": "g"
+      },
+      "link": null
+    },
+    {
+      "name": "gousse vanille",
+      "amount": {
+        "factor": 1,
+        "unit": null
+      },
+      "link": null
+    },
+    {
+      "name": "farine T80",
+      "amount": {
+        "factor": 300,
+        "unit": "g"
+      },
+      "link": null
+    },
+    {
+      "name": "oeufs",
+      "amount": {
+        "factor": 4,
+        "unit": null
+      },
+      "link": null
+    },
+    {
+      "name": "rhum ambré",
+      "amount": {
+        "factor": 10,
+        "unit": "cL"
+      },
+      "link": null
+    },
+    {
+      "name": "boite d'[agent de graîssage _Slider_](https://www.laboetgato.fr/fr/agents-de-graissage/11076-slider-agent-de-graissage-hautes-temperatures-200-g-3333333010024.html)",
+      "amount": {
+        "factor": 1,
+        "unit": null
+      },
+      "link": null
+    }
+  ],
+  "ingredientGroups": [],
+  "instructions": "## Pâte\n\n1. Dans une casserole, mélanger le lait, la moitié du sucre, le beurre et la vanille. Faire chauffer doucement jusque 65°C.\n1. Dans un cul de poule, mélanger la farine, le reste de sucre et les oeufs\n1. Verser au fur et à mesure le contenu de la casserole en mélengeant\n1. Laisser un peu refroidir. Ajouter le rhum\n1. Laisser reposer 48h, filmé, au réfrigérateur\n\n## Cuisson\n\n1. Préchauffer le four à 250°C\n1. Cuire 10 minutes à 250°C\n1. Baisser à 175°C et cuire 1h\n\n---\n\nSources:\n\n- [Boulangerie Pas à Pas](https://www.boulangerie-pasapas.com/canneles-bordelais-la-recette-authentique-revelee/)\n- [Youtube Video](https://www.youtube.com/watch?v=N-Oz4XDBld0)"
+}

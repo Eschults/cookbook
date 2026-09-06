@@ -57,7 +57,7 @@ describe('RecipeIndexView', () => {
   it('links each card to its recipe', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
     const hrefs = view.findAll('a').map(link => link.attributes('href'))
-    expect(hrefs).toContain('/recipes/guac')
+    expect(hrefs).toContain('/r/guac')
   })
 
   it('titles the page once', async () => {
@@ -70,11 +70,10 @@ describe('RecipeIndexView', () => {
 
   it('follows the active locale', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
-    expect(view.text()).toContain('2 recettes de la collection RecipeMD.')
+    expect(view.text()).toContain('3 ingrédients')
 
     i18n.global.locale.value = 'en'
     await view.vm.$nextTick()
-    expect(view.text()).toContain('2 recipes from the RecipeMD collection.')
     expect(view.text()).toContain('3 ingredients')
   })
 })

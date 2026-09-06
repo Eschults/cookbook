@@ -20,8 +20,21 @@ export async function mountView(component, { props = {}, route = '/' } = {}) {
   })
 }
 
-/** A recipe in the shape `toRecipe()` produces, with overridable fields. */
+/**
+ * A recipe in the shape `toRecipe()` produces, with overridable fields.
+ *
+ * `stepGroups` follows `steps` unless it is overridden, so a test that only
+ * cares about the steps does not have to restate them in grouped form.
+ */
 export function makeRecipe(overrides = {}) {
+  const recipe = makeRecipeFields(overrides)
+  if (!overrides.stepGroups) {
+    recipe.stepGroups = recipe.steps.length ? [{ title: null, steps: recipe.steps }] : []
+  }
+  return recipe
+}
+
+function makeRecipeFields(overrides) {
   return {
     id: 'guacamole',
     slug: 'guacamole',
@@ -36,6 +49,7 @@ export function makeRecipe(overrides = {}) {
       { name: 'lemon juice', quantity: null, unit: '', link: null, group: null, original: 'lemon juice', scalable: false }
     ],
     steps: ['Mash the avocado.', 'Season to taste.'],
+    stepGroups: [],
     sources: [],
     instructions: 'Mash the avocado.',
     sourcePath: 'recipes/guacamole/recipe.md',
