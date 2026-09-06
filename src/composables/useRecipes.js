@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { getLatestSha, downloadRecipes } from '../services/github.js'
+import { getLatestSha, downloadRecipes, filesToRecipes } from '../services/github.js'
 import { loadRecipeCache, saveRecipeCache } from '../services/storage.js'
 import { useLocale } from './useLocale.js'
 import { i18n } from '../i18n/index.js'
@@ -10,6 +10,14 @@ const downloaded = ref([])
 const loading = ref(false)
 const error = ref('')
 const cachedSha = ref('')
+
+/**
+ * Each recipe file's own git blob sha, alongside its parsed content — not a
+ * ref, since nothing renders it directly. Passed back into `downloadRecipes`
+ * so it only re-fetches files whose blob sha actually changed, rather than
+ * every recipe whenever anything in the repository changes.
+ */
+let cachedFiles = {}
 
 // Sorting happens on read, not at download time, so the order follows the
 // current locale rather than whichever one was active when the cache was built.
@@ -27,8 +35,9 @@ const recipes = computed(() =>
 // cache as empty and downloads again, rather than needing them to notice and
 // clear it by hand.
 const cached = loadRecipeCache()
-if (cached?.recipes?.length && cached.version === __APP_VERSION__) {
-  downloaded.value = cached.recipes
+if (cached?.files && Object.keys(cached.files).length && cached.version === __APP_VERSION__) {
+  cachedFiles = cached.files
+  downloaded.value = filesToRecipes(cached.files)
   cachedSha.value = cached.sha || ''
 }
 
@@ -45,10 +54,11 @@ export function useRecipes() {
         return
       }
 
-      const freshRecipes = await downloadRecipes()
-      downloaded.value = freshRecipes
+      const files = await downloadRecipes(cachedFiles)
+      cachedFiles = files
+      downloaded.value = filesToRecipes(files)
       cachedSha.value = latestSha
-      saveRecipeCache({ sha: latestSha, recipes: freshRecipes, version: __APP_VERSION__ })
+      saveRecipeCache({ sha: latestSha, files, version: __APP_VERSION__ })
     } catch (err) {
       if (!downloaded.value.length) {
         error.value = err?.message || i18n.global.t('app.unknownError')

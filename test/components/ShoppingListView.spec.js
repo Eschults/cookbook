@@ -4,12 +4,12 @@ import { useShoppingList } from '../../src/composables/useShoppingList.js'
 import { useRecipes } from '../../src/composables/useRecipes.js'
 import * as github from '../../src/services/github.js'
 import { i18n } from '../../src/i18n/index.js'
-import { ingredient, makeRecipe, mountView } from '../helpers.js'
+import { filesOf, ingredient, makeRecipe, mountView } from '../helpers.js'
 
-vi.mock('../../src/services/github.js', () => ({
-  getLatestSha: vi.fn(),
-  downloadRecipes: vi.fn()
-}))
+vi.mock('../../src/services/github.js', async () => {
+  const actual = await vi.importActual('../../src/services/github.js')
+  return { ...actual, getLatestSha: vi.fn(), downloadRecipes: vi.fn() }
+})
 
 const list = useShoppingList()
 const { refresh } = useRecipes()
@@ -26,7 +26,7 @@ let nextSha = 0
  */
 async function addRecipe(recipe, multiplier) {
   github.getLatestSha.mockResolvedValue(`sha${nextSha++}`)
-  github.downloadRecipes.mockResolvedValue([recipe])
+  github.downloadRecipes.mockResolvedValue(filesOf([recipe]))
   await refresh()
   list.addRecipe(recipe, multiplier)
 }

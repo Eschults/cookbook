@@ -7,8 +7,8 @@ import {
 
 describe('recipe cache', () => {
   it('round trips', () => {
-    saveRecipeCache({ sha: 'abc123', recipes: [{ slug: 'x' }] })
-    expect(loadRecipeCache()).toEqual({ sha: 'abc123', recipes: [{ slug: 'x' }] })
+    saveRecipeCache({ sha: 'abc123', files: { x: { sha: 'blob1', recipe: { slug: 'x' } } } })
+    expect(loadRecipeCache()).toEqual({ sha: 'abc123', files: { x: { sha: 'blob1', recipe: { slug: 'x' } } } })
   })
 
   it('returns null when empty', () => {
@@ -16,12 +16,12 @@ describe('recipe cache', () => {
   })
 
   it('returns null rather than throwing on corrupt JSON', () => {
-    localStorage.setItem('cookbook:recipe-cache:v2', '{not json')
+    localStorage.setItem('cookbook:recipe-cache:v3', '{not json')
     expect(loadRecipeCache()).toBeNull()
   })
 
-  it('ignores a v1 cache, whose recipes have the old shape', () => {
-    localStorage.setItem('cookbook:recipe-cache:v1', JSON.stringify({ sha: 'old', recipes: [{}] }))
+  it('ignores a v2 cache, whose recipes have the old flat-array shape', () => {
+    localStorage.setItem('cookbook:recipe-cache:v2', JSON.stringify({ sha: 'old', recipes: [{}] }))
     expect(loadRecipeCache()).toBeNull()
   })
 })

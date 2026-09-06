@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { downloadRecipes, getLatestSha, toRecipe } from '../../src/services/github.js'
+import { downloadRecipes, filesToRecipes, getLatestSha, RAW_FETCH_CONCURRENCY, toRecipe } from '../../src/services/github.js'
 
 const FIXTURES = resolve(process.cwd(), 'test/fixtures/recipemd')
 const fullRecipe = readFileSync(resolve(FIXTURES, 'full-recipe.md'), 'utf8')
@@ -26,9 +26,14 @@ function stubFetch(routes) {
   return fetch
 }
 
-const tree = (...paths) => ({
+/**
+ * A tree entry can be given as a bare path (its blob sha then just defaults
+ * to the path itself, which is enough for tests that don't care about sha
+ * equality) or as `{ path, sha }` for tests that need to control it.
+ */
+const tree = (...entries) => ({
   truncated: false,
-  tree: paths.map(path => ({ path, type: 'blob' }))
+  tree: entries.map(entry => (typeof entry === 'string' ? { path: entry, type: 'blob', sha: entry } : { type: 'blob', ...entry }))
 })
 
 describe('toRecipe', () => {
@@ -147,7 +152,7 @@ describe('source repository configuration', () => {
     })
     const github = await withForkedConfig()
 
-    const recipes = await github.downloadRecipes()
+    const recipes = github.filesToRecipes(await github.downloadRecipes())
     const urls = fetch.mock.calls.map(([url]) => String(url))
 
     expect(urls[0]).toBe('https://api.github.com/repos/octocat/dishes/git/trees/trunk?recursive=1')
@@ -172,7 +177,8 @@ describe('source repository configuration', () => {
     stubFetch({ '/git/trees/': tree('anywhere/a.md'), 'anywhere/a.md': fullRecipe })
     const github = await import('../../src/services/github.js')
 
-    expect((await github.downloadRecipes()).map(item => item.slug)).toEqual(['anywhere-a'])
+    const recipes = github.filesToRecipes(await github.downloadRecipes())
+    expect(recipes.map(item => item.slug)).toEqual(['anywhere-a'])
   })
 })
 
@@ -196,13 +202,13 @@ describe('downloadRecipes', () => {
       'recipes/b/recipe.md': groups
     })
 
-    const recipes = await downloadRecipes()
+    const recipes = filesToRecipes(await downloadRecipes())
     expect(recipes.map(item => item.slug).sort()).toEqual(['a', 'b'])
   })
 
   it('ignores files outside recipes/', async () => {
     stubFetch({ '/git/trees/': tree('README.md', 'docs/notes.md'), 'x': '' })
-    expect(await downloadRecipes()).toEqual([])
+    expect(filesToRecipes(await downloadRecipes())).toEqual([])
   })
 
   it('skips a malformed recipe instead of failing the batch', async () => {
@@ -213,7 +219,7 @@ describe('downloadRecipes', () => {
       'recipes/bad/recipe.md': 'no title here'
     })
 
-    const recipes = await downloadRecipes()
+    const recipes = filesToRecipes(await downloadRecipes())
     expect(recipes).toHaveLength(1)
     expect(recipes[0].slug).toBe('good')
   })
@@ -223,11 +229,117 @@ describe('downloadRecipes', () => {
     await expect(downloadRecipes()).rejects.toThrow(/truncated/i)
   })
 
-  it('reports a file that cannot be downloaded', async () => {
-    vi.stubGlobal('fetch', vi.fn(async url =>
-      String(url).includes('/git/trees/')
-        ? { ok: true, json: async () => tree('recipes/a/recipe.md') }
-        : { ok: false, status: 500 }))
-    await expect(downloadRecipes()).rejects.toThrow(/Unable to download/)
+  describe('incremental caching by blob sha', () => {
+    it('reuses a cached recipe when its blob sha is unchanged', async () => {
+      const fetch = stubFetch({ '/git/trees/': tree({ path: 'recipes/a/recipe.md', sha: 'blob-a' }) })
+      const previousFiles = { 'recipes/a/recipe.md': { sha: 'blob-a', recipe: toRecipe(fullRecipe, 'recipes/a/recipe.md') } }
+
+      const files = await downloadRecipes(previousFiles)
+
+      expect(files['recipes/a/recipe.md']).toBe(previousFiles['recipes/a/recipe.md'])
+      expect(fetch).toHaveBeenCalledTimes(1) // only the tree listing, no raw fetch
+    })
+
+    it('re-fetches only the files whose blob sha changed', async () => {
+      const fetch = stubFetch({
+        '/git/trees/': tree(
+          { path: 'recipes/a/recipe.md', sha: 'blob-a' },
+          { path: 'recipes/b/recipe.md', sha: 'blob-b-new' }
+        ),
+        'recipes/b/recipe.md': groups
+      })
+      const previousFiles = {
+        'recipes/a/recipe.md': { sha: 'blob-a', recipe: toRecipe(fullRecipe, 'recipes/a/recipe.md') },
+        'recipes/b/recipe.md': { sha: 'blob-b-old', recipe: toRecipe(fullRecipe, 'recipes/b/recipe.md') }
+      }
+
+      await downloadRecipes(previousFiles)
+
+      const rawUrls = fetch.mock.calls.map(([url]) => String(url)).filter(url => !url.includes('git/trees'))
+      expect(rawUrls).toEqual([expect.stringContaining('recipes/b/recipe.md')])
+    })
+
+    it('drops a recipe whose file left the tree', async () => {
+      stubFetch({ '/git/trees/': tree({ path: 'recipes/a/recipe.md', sha: 'blob-a' }) })
+      const previousFiles = {
+        'recipes/a/recipe.md': { sha: 'blob-a', recipe: toRecipe(fullRecipe, 'recipes/a/recipe.md') },
+        'recipes/gone/recipe.md': { sha: 'blob-gone', recipe: toRecipe(groups, 'recipes/gone/recipe.md') }
+      }
+
+      const files = await downloadRecipes(previousFiles)
+      expect(Object.keys(files)).toEqual(['recipes/a/recipe.md'])
+    })
+
+    it('reuses a cached parse failure without re-fetching', async () => {
+      const fetch = stubFetch({ '/git/trees/': tree({ path: 'recipes/bad/recipe.md', sha: 'blob-bad' }) })
+      const previousFiles = { 'recipes/bad/recipe.md': { sha: 'blob-bad', recipe: null } }
+
+      const files = await downloadRecipes(previousFiles)
+
+      expect(files['recipes/bad/recipe.md']).toEqual({ sha: 'blob-bad', recipe: null })
+      expect(fetch).toHaveBeenCalledTimes(1)
+      expect(filesToRecipes(files)).toEqual([])
+    })
+
+    it('falls back to the previous cached entry when a re-fetch fails', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      vi.stubGlobal('fetch', vi.fn(async url =>
+        String(url).includes('/git/trees/')
+          ? { ok: true, json: async () => tree({ path: 'recipes/a/recipe.md', sha: 'blob-a-new' }) }
+          : { ok: false, status: 500 }))
+      const staleEntry = { sha: 'blob-a-old', recipe: toRecipe(fullRecipe, 'recipes/a/recipe.md') }
+
+      const files = await downloadRecipes({ 'recipes/a/recipe.md': staleEntry })
+
+      // The OLD entry (old sha included) is kept, not a new one under the
+      // tree's current sha — so it is tried again next time, rather than
+      // being wrongly marked as verified against unfetched content.
+      expect(files['recipes/a/recipe.md']).toBe(staleEntry)
+      expect(console.warn).toHaveBeenCalled()
+    })
+
+    it('drops a file that fails to fetch when there is no cached copy', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      vi.stubGlobal('fetch', vi.fn(async url =>
+        String(url).includes('/git/trees/')
+          ? { ok: true, json: async () => tree('recipes/a/recipe.md') }
+          : { ok: false, status: 500 }))
+
+      const files = await downloadRecipes()
+      expect(files).toEqual({})
+    })
+
+    it('bounds concurrency to N simultaneous raw fetches', async () => {
+      const paths = Array.from({ length: RAW_FETCH_CONCURRENCY * 2 }, (_, i) => `recipes/r${i}/recipe.md`)
+      let inFlight = 0
+      let maxInFlight = 0
+      const pending = []
+
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/git/trees/')) {
+          return Promise.resolve({ ok: true, json: async () => tree(...paths) })
+        }
+        inFlight++
+        maxInFlight = Math.max(maxInFlight, inFlight)
+        let release
+        const held = new Promise(r => { release = r })
+        pending.push(release)
+        return held.then(() => { inFlight--; return { ok: true, text: async () => fullRecipe } })
+      }))
+
+      const done = downloadRecipes()
+
+      // First wave: exactly the concurrency cap should be in flight at once.
+      await vi.waitFor(() => expect(pending.length).toBe(RAW_FETCH_CONCURRENCY))
+      expect(maxInFlight).toBe(RAW_FETCH_CONCURRENCY)
+
+      // Releasing the first wave lets the pool refill to the same cap, not beyond it.
+      pending.splice(0).forEach(release => release())
+      await vi.waitFor(() => expect(pending.length).toBe(RAW_FETCH_CONCURRENCY))
+      expect(maxInFlight).toBe(RAW_FETCH_CONCURRENCY)
+
+      pending.splice(0).forEach(release => release())
+      await done
+    })
   })
 })

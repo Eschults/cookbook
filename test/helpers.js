@@ -57,3 +57,12 @@ export function makeRecipe(overrides = {}) {
 
   return recipe
 }
+
+/**
+ * The files map `downloadRecipes()`/the recipe cache use, built from plain
+ * recipes for tests that mock `downloadRecipes` wholesale rather than
+ * exercising the real path-and-blob-sha diffing logic.
+ */
+export function filesOf(recipes, sha = 'sha') {
+  return Object.fromEntries(recipes.map(recipe => [recipe.slug, { sha, recipe }]))
+}

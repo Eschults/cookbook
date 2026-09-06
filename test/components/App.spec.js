@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { makeRecipe } from '../helpers.js'
+import { filesOf, makeRecipe } from '../helpers.js'
 
-vi.mock('../../src/services/github.js', () => ({
-  getLatestSha: vi.fn(),
-  downloadRecipes: vi.fn()
-}))
+vi.mock('../../src/services/github.js', async () => {
+  const actual = await vi.importActual('../../src/services/github.js')
+  return { ...actual, getLatestSha: vi.fn(), downloadRecipes: vi.fn() }
+})
 
 let App, github, i18n, routes
 
@@ -17,7 +17,7 @@ beforeEach(async () => {
   vi.resetModules()
   github = await import('../../src/services/github.js')
   github.getLatestSha.mockReset().mockResolvedValue('abc1234def')
-  github.downloadRecipes.mockReset().mockResolvedValue([makeRecipe()])
+  github.downloadRecipes.mockReset().mockResolvedValue(filesOf([makeRecipe()]))
   ;({ i18n } = await import('../../src/i18n/index.js'))
   ;({ routes } = await import('../../src/router.js'))
   App = (await import('../../src/App.vue')).default

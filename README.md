@@ -55,8 +55,11 @@ that does not parse is skipped with a console warning rather than breaking the a
 
 The repository has to be **public**: the browser calls the GitHub API without a token,
 so a private repository would return 404. The unauthenticated API also allows 60 requests
-per hour per IP, which is plenty here — a load costs two requests plus one per recipe
-file, and the result is cached until the repository's HEAD moves.
+per hour per IP, which is plenty here — a load costs two requests (the head commit and a
+recursive tree listing) regardless of how many recipes exist. Each recipe file's own git
+blob sha is cached alongside its parsed content, so once the repository's HEAD moves, only
+the files whose blob sha actually changed are re-fetched — not the whole collection —
+bounded to a handful of simultaneous requests to `raw.githubusercontent.com` at a time.
 
 Recipes must follow the [RecipeMD specification](https://recipemd.org/specification.html).
 Note in particular that amounts are wrapped in emphasis:

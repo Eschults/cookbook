@@ -30,25 +30,94 @@ export async function getLatestSha() {
   return commit.sha
 }
 
-export async function downloadRecipes() {
+/**
+ * How many raw-file fetches run at once. Any change anywhere in the source
+ * repository moves its HEAD sha, and without a cap a large collection would
+ * fire one simultaneous `fetch` per recipe — exactly the burst pattern
+ * GitHub's abuse detection throttles, independent of the documented
+ * requests-per-hour quota.
+ */
+export const RAW_FETCH_CONCURRENCY = 6
+
+async function mapWithConcurrency(items, limit, fn) {
+  let cursor = 0
+  async function worker() {
+    while (cursor < items.length) {
+      const item = items[cursor++]
+      await fn(item)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+}
+
+/**
+ * Downloads every recipe file, reusing `previousFiles` for anything whose
+ * git blob sha hasn't changed. Without this, any change anywhere in the
+ * repository — even one unrelated to recipes — would re-download every
+ * recipe file on the next visit, since the only thing tracked before was the
+ * repository's own HEAD commit sha, not each file's own sha.
+ *
+ * Returns a map keyed by path rather than a flat array, so a caller can pass
+ * it straight back in as next time's `previousFiles`; see `filesToRecipes()`
+ * for the flat list the rest of the app actually consumes.
+ */
+export async function downloadRecipes(previousFiles = {}) {
   const tree = await githubFetch(`${API}/git/trees/${branch}?recursive=1`)
   if (tree.truncated) {
     throw new Error('GitHub returned a truncated repository tree. The source repository is too large for this client-side loader.')
   }
 
-  const paths = tree.tree
+  const entries = tree.tree
     .filter(item => item.type === 'blob' && RECIPE_PATH.test(item.path))
-    .map(item => item.path)
+    .map(item => ({ path: item.path, sha: item.sha }))
 
-  const results = await Promise.all(paths.map(async path => {
-    const response = await fetch(`${RAW}/${encodeURI(path)}`)
-    if (!response.ok) throw new Error(`Unable to download ${path}`)
-    return toRecipe(await response.text(), path)
-  }))
+  const files = {}
+  const toFetch = []
+  for (const entry of entries) {
+    const previous = previousFiles[entry.path]
+    if (previous && previous.sha === entry.sha) files[entry.path] = previous
+    else toFetch.push(entry)
+  }
+  // A path that stayed in `previousFiles` without being visited above has
+  // left the tree (deleted or renamed upstream) and is dropped by simply
+  // never being copied into `files`.
 
-  // Ordering is locale-dependent, so it lives in useRecipes() rather than in
-  // the cached payload: the locale can change without a re-download.
-  return results.filter(Boolean)
+  await mapWithConcurrency(toFetch, RAW_FETCH_CONCURRENCY, async ({ path, sha }) => {
+    let text
+    try {
+      const response = await fetch(`${RAW}/${encodeURI(path)}`)
+      if (!response.ok) throw new Error(`Unable to download ${path}`)
+      text = await response.text()
+    } catch (error) {
+      // A file that fails to fetch keeps its previous entry — under its OLD
+      // sha, not this tree's — so it stays on the site with its last-known
+      // content and is tried again next time the repository changes, rather
+      // than either vanishing or failing every other recipe's load too.
+      // Stamping the new sha here instead would mark unverified content as
+      // up to date and stop it from ever being retried.
+      const stale = previousFiles[path]
+      if (stale) {
+        console.warn(`Keeping the cached copy of ${path}: ${error.message}`)
+        files[path] = stale
+      } else {
+        console.warn(`Skipping ${path}: ${error.message}`)
+      }
+      return
+    }
+    files[path] = { sha, recipe: toRecipe(text, path) }
+  })
+
+  return files
+}
+
+/**
+ * The flat list of recipes a files map actually holds, in no particular
+ * order — a file that failed to parse (see `toRecipe`) leaves a `null` entry
+ * behind, filtered out here. Ordering is locale-dependent, so it lives in
+ * useRecipes() rather than here: the locale can change without a re-download.
+ */
+export function filesToRecipes(files) {
+  return Object.values(files).map(file => file.recipe).filter(Boolean)
 }
 
 /**

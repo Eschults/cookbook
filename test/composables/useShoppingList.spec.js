@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ingredient, makeRecipe } from '../helpers.js'
+import { filesOf, ingredient, makeRecipe } from '../helpers.js'
 import { saveRecipeCache } from '../../src/services/storage.js'
 
 // The store is a module singleton, so it must be rebuilt for every test.
@@ -15,7 +15,7 @@ beforeEach(() => {
  * reads `shoppingList.value` needs the recipe it adds to also be seeded here.
  */
 async function withRecipes(recipes) {
-  saveRecipeCache({ sha: 'sha1', recipes, version: __APP_VERSION__ })
+  saveRecipeCache({ sha: 'sha1', files: filesOf(recipes), version: __APP_VERSION__ })
   const { useShoppingList } = await import('../../src/composables/useShoppingList.js')
   return useShoppingList()
 }
@@ -229,7 +229,7 @@ describe('mutations', () => {
 describe('persistence', () => {
   it('survives a reload', async () => {
     const recipe = makeRecipe()
-    saveRecipeCache({ sha: 'sha1', recipes: [recipe], version: __APP_VERSION__ })
+    saveRecipeCache({ sha: 'sha1', files: filesOf([recipe]), version: __APP_VERSION__ })
     ;(await import('../../src/composables/useShoppingList.js')).useShoppingList().addRecipe(recipe, 2)
 
     vi.resetModules()
