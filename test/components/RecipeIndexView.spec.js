@@ -46,6 +46,10 @@ describe('RecipeIndexView', () => {
     await view.findAll('button')[1].trigger('click')
     expect(view.text()).toContain('Tarte Tatin')
     expect(view.text()).not.toContain('Guacamole')
+
+    // "Toutes" clears the filter again.
+    await view.findAll('button')[0].trigger('click')
+    expect(view.text()).toContain('Guacamole')
   })
 
   it('shows the empty state when nothing matches', async () => {

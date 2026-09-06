@@ -54,13 +54,16 @@ describe('AddToShoppingListDialog', () => {
     expect(view.emitted('add')).toBeUndefined()
   })
 
-  it('cancels from the close button and the backdrop', async () => {
+  it('cancels from the close button, the footer button and the backdrop', async () => {
     const view = await open(makeRecipe())
     await view.find('[aria-label="Fermer"]').trigger('click')
     expect(view.emitted('cancel')).toHaveLength(1)
 
-    await view.find('.fixed').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Annuler').trigger('click')
     expect(view.emitted('cancel')).toHaveLength(2)
+
+    await view.find('.fixed').trigger('click')
+    expect(view.emitted('cancel')).toHaveLength(3)
   })
 
   it('cancels on Escape', async () => {

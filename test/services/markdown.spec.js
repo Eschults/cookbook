@@ -12,6 +12,12 @@ describe('renderInline', () => {
     expect(renderInline('a _b_ **c** `d`')).toBe('a <em>b</em> <strong>c</strong> <code>d</code>')
   })
 
+  it('renders strikethrough and a hard line break', () => {
+    expect(renderInline('a ~~b~~ c')).toBe('a <del>b</del> c')
+    // An ingredient item may span lines, which is where a hard break shows up.
+    expect(renderInline('one  \ntwo')).toBe('one<br>two')
+  })
+
   it('opens links in a new tab', () => {
     expect(renderInline('[Slider](https://example.org/a?b=1)'))
       .toBe('<a href="https://example.org/a?b=1" target="_blank" rel="noreferrer">Slider</a>')
@@ -51,6 +57,11 @@ describe('stripInline', () => {
     expect(stripInline("boite d'[agent de graîssage _Slider_](https://example.org/)"))
       .toBe("boite d'agent de graîssage Slider")
     expect(stripInline('**500 g** de `farine`')).toBe('500 g de farine')
+  })
+
+  it('flattens a hard line break to a space', () => {
+    expect(stripInline('a ~~b~~ c')).toBe('a b c')
+    expect(stripInline('one  \ntwo')).toBe('one two')
   })
 
   it('returns an empty string for nothing to strip', () => {

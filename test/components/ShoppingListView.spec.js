@@ -192,6 +192,122 @@ describe('ShoppingListView', () => {
     expect(view.text()).toContain('1,5 kg')
   })
 
+  // The row slides under a fixed reveal button: the button is translated by
+  // REVEAL_WIDTH (80) plus the row's offset, so 80px is shut and 0px is open.
+  describe('swipe to delete', () => {
+    const touch = clientX => ({ touches: [{ clientX }] })
+    const revealOf = row => row.find('button.sm\\:hidden').attributes('style')
+
+    /** The row's own content div, which carries the touch handlers. */
+    const rowsOf = view => view.findAll('li')
+
+    async function drag(row, from, ...positions) {
+      await row.find('div').trigger('touchstart', touch(from))
+      for (const x of positions) await row.find('div').trigger('touchmove', touch(x))
+    }
+
+    it('opens the row when the drag passes the halfway point', async () => {
+      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      const view = await mountView(ShoppingListView)
+      const [row] = rowsOf(view)
+
+      await drag(row, 200, 100)
+      await row.find('div').trigger('touchend')
+
+      expect(revealOf(row)).toContain('translateX(0px)')
+    })
+
+    it('snaps shut again when the drag stops short of it', async () => {
+      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      const view = await mountView(ShoppingListView)
+      const [row] = rowsOf(view)
+
+      await drag(row, 200, 180)
+      await row.find('div').trigger('touchend')
+
+      expect(revealOf(row)).toContain('translateX(80px)')
+    })
+
+    it('tracks the finger mid-drag and clamps to the reveal width', async () => {
+      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      const view = await mountView(ShoppingListView)
+      const [row] = rowsOf(view)
+
+      await drag(row, 200, 170)
+      expect(revealOf(row)).toContain('translateX(50px)')
+
+      // Dragging further than the button is wide must not tear it off the row.
+      await row.find('div').trigger('touchmove', touch(-400))
+      expect(revealOf(row)).toContain('translateX(0px)')
+
+      // Nor may dragging the other way push it out past its resting place.
+      await row.find('div').trigger('touchmove', touch(400))
+      expect(revealOf(row)).toContain('translateX(80px)')
+    })
+
+    it('does not tick the item off at the end of a swipe', async () => {
+      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      const view = await mountView(ShoppingListView)
+      const [row] = rowsOf(view)
+
+      await drag(row, 200, 100)
+      await row.find('div').trigger('touchend')
+      // The browser fires a click of its own once the finger lifts.
+      await row.find('div').trigger('click')
+
+      expect(list.itemCount.value).toBe(1)
+    })
+
+    it('spends the next tap closing the row rather than ticking it off', async () => {
+      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      const view = await mountView(ShoppingListView)
+      const [row] = rowsOf(view)
+
+      await drag(row, 200, 100)
+      await row.find('div').trigger('touchend')
+      await row.find('div').trigger('click')
+
+      await row.find('div').trigger('click')
+      expect(revealOf(row)).toContain('translateX(80px)')
+      expect(list.itemCount.value).toBe(1)
+
+      // Only once it is shut does a tap mean what it usually means.
+      await row.find('div').trigger('click')
+      expect(list.itemCount.value).toBe(0)
+    })
+
+    it('closes an open row when another one is touched', async () => {
+      list.addRecipe(makeRecipe({
+        ingredients: [ingredient('ail', 3), ingredient('basilic', 1)]
+      }), 1)
+      const view = await mountView(ShoppingListView)
+      const [first, second] = rowsOf(view)
+
+      await drag(first, 200, 100)
+      await first.find('div').trigger('touchend')
+      expect(revealOf(first)).toContain('translateX(0px)')
+
+      await second.find('div').trigger('touchstart', touch(200))
+      expect(revealOf(first)).toContain('translateX(80px)')
+    })
+
+    it('removes the item from the reveal button without confirming', async () => {
+      const confirm = vi.fn(() => true)
+      vi.stubGlobal('confirm', confirm)
+      list.addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+      const view = await mountView(ShoppingListView)
+      const [row] = rowsOf(view)
+
+      await drag(row, 200, 100)
+      await row.find('div').trigger('touchend')
+      await row.find('button.sm\\:hidden').trigger('click')
+
+      // The swipe was the confirmation.
+      expect(confirm).not.toHaveBeenCalled()
+      expect(list.shoppingList.value).toEqual([])
+    })
+  })
+
   it('follows the active locale', async () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)

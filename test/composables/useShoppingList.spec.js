@@ -106,6 +106,18 @@ describe('addRecipe', () => {
     ])
   })
 
+  it('sums a quantity onto a row that started without one', () => {
+    const list = useShoppingList()
+    // Both key to "sel g", so the second addition lands on the first's row,
+    // which has no running total to add to yet.
+    list.addRecipe(makeRecipe({ slug: 'a', ingredients: [ingredient('sel', null, 'g')] }), 1)
+    list.addRecipe(makeRecipe({ slug: 'b', ingredients: [ingredient('sel', 5, 'g')] }), 1)
+
+    expect(list.shoppingList.value).toEqual([
+      expect.objectContaining({ name: 'sel', quantity: 5, unit: 'g' })
+    ])
+  })
+
   it('keeps an item ticked off when the recipe is added again', () => {
     const list = useShoppingList()
     list.addRecipe(makeRecipe(), 1)
@@ -161,6 +173,18 @@ describe('mutations', () => {
     list.addRecipe(makeRecipe(), 1)
     list.removeItem(list.shoppingList.value[0].id)
     expect(list.shoppingList.value).toHaveLength(2)
+  })
+
+  it('records an exclusion once, however often it is asked for', () => {
+    const list = useShoppingList()
+    list.addRecipe(makeRecipe(), 1)
+    const [{ id }] = list.shoppingList.value
+
+    list.removeItem(id)
+    list.removeItem(id)
+
+    expect(list.shoppingList.value).toHaveLength(2)
+    expect(list.state.excluded).toEqual([id])
   })
 
   it('clears the list and the menu together', () => {
