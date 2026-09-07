@@ -7,4 +7,8 @@ import { DEFAULT_LOCALE } from '../src/i18n/locales.js'
 beforeEach(() => {
   localStorage.clear()
   i18n.global.locale.value = DEFAULT_LOCALE
+  // jsdom has no layout engine, so it doesn't implement matchMedia. Default
+  // every test to a desktop-sized viewport; tests can vi.spyOn over this to
+  // simulate mobile.
+  window.matchMedia = window.matchMedia || (query => ({ matches: true, media: query }))
 })

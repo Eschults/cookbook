@@ -36,8 +36,11 @@ function focusOnSlash(event) {
   searchInput.value?.focus()
 }
 
+// Autofocusing on mobile pops the keyboard and covers the page before the
+// user asked for it, so only do it on desktop-sized viewports (matches the
+// `sm` breakpoint already used below to switch the header layout).
 onMounted(() => {
-  searchInput.value?.focus()
+  if (window.matchMedia('(min-width: 640px)').matches) searchInput.value?.focus()
   window.addEventListener('keydown', focusOnSlash)
 })
 onUnmounted(() => window.removeEventListener('keydown', focusOnSlash))

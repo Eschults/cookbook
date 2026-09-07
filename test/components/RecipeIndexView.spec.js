@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import RecipeIndexView from '../../src/views/RecipeIndexView.vue'
 import { i18n } from '../../src/i18n/index.js'
 import { ingredient, makeRecipe, mountView } from '../helpers.js'
@@ -86,9 +86,17 @@ describe('RecipeIndexView', () => {
     expect(headings[0].text()).toBe('Recettes')
   })
 
-  it('focuses the search field on load', async () => {
+  it('focuses the search field on load, on desktop', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes }, attachTo: document.body })
     expect(document.activeElement).toBe(view.find('#recipe-search').element)
+    view.unmount()
+  })
+
+  it('leaves the search field unfocused on load, on mobile', async () => {
+    vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: false })
+
+    const view = await mountView(RecipeIndexView, { props: { recipes }, attachTo: document.body })
+    expect(document.activeElement).not.toBe(view.find('#recipe-search').element)
     view.unmount()
   })
 
