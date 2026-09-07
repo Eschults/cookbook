@@ -13,5 +13,11 @@ export const routes = [
 
 export const router = createRouter({
   history: createWebHashHistory(),
-  routes
+  routes,
+  // Land at the top of the new page so its title and CTA are above the fold,
+  // except when returning via back/forward, where the prior scroll position
+  // is more useful than the top.
+  scrollBehavior(to, from, savedPosition) {
+    return savedPosition || { top: 0 }
+  }
 })
