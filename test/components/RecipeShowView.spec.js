@@ -20,6 +20,20 @@ describe('RecipeShowView', () => {
     expect(view.text()).toContain('Pour 4 Servings')
   })
 
+  it('pluralizes a counted ingredient with no unit', async () => {
+    const recipe = makeRecipe({ ingredients: [ingredient('egg', 4)] })
+    const view = await show([recipe], 'guacamole')
+    expect(view.find('ul li').text()).toBe('4eggs')
+  })
+
+  it('does not pluralize a single count, or a count carrying a unit', async () => {
+    const recipe = makeRecipe({ ingredients: [ingredient('egg', 1), ingredient('flour', 200, 'g')] })
+    const view = await show([recipe], 'guacamole')
+    const [egg, flour] = view.findAll('ul li')
+    expect(egg.text()).toBe('1egg')
+    expect(flour.text()).toBe('200 gflour')
+  })
+
   it('shows an ingredient with no quantity by its name alone', async () => {
     const view = await show([makeRecipe()], 'guacamole')
     expect(view.text()).toContain('lemon juice')

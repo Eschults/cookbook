@@ -122,12 +122,26 @@ describe('ShoppingListView', () => {
     expect(flour.find('span.text-slate-500').text()).toBe('200 g')
   })
 
+  it('pluralizes a counted ingredient with no unit', async () => {
+    await addRecipe(makeRecipe({ ingredients: [ingredient('zucchini', 3)] }), 1)
+    const view = await mountView(ShoppingListView)
+
+    expect(view.find('li span.font-bold').text()).toBe('Zucchinis')
+  })
+
+  it('does not pluralize a count that carries a unit', async () => {
+    await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
+    const view = await mountView(ShoppingListView)
+
+    expect(view.find('li span.font-bold').text()).toBe('Flour')
+  })
+
   it('orders each group alphabetically by ingredient name', async () => {
     await addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
 
-    expect(names).toEqual(['Ail', 'Échalote', 'Zucchini'])
+    expect(names).toEqual(['Ails', 'Échalote', 'Zucchinis'])
   })
 
   it('sinks checked items to the bottom of their group, alphabetical within each half', async () => {
@@ -136,11 +150,11 @@ describe('ShoppingListView', () => {
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
 
-    expect(names).toEqual(['Ail', 'Échalote', 'Zucchini'])
+    expect(names).toEqual(['Ails', 'Échalote', 'Zucchinis'])
 
     await view.find('li > div').trigger('click')
     const reordered = view.findAll('li span.font-bold').map(node => node.text())
-    expect(reordered).toEqual(['Échalote', 'Ail', 'Zucchini'])
+    expect(reordered).toEqual(['Échalote', 'Ails', 'Zucchinis'])
   })
 
   it('orders checked items by most recently checked first', async () => {
@@ -155,7 +169,7 @@ describe('ShoppingListView', () => {
     const view = await mountView(ShoppingListView)
     const names = view.findAll('li span.font-bold').map(node => node.text())
 
-    expect(names).toEqual(['Échalote', 'Ail', 'Zucchini'])
+    expect(names).toEqual(['Échalote', 'Ails', 'Zucchinis'])
   })
 
   it('clears the whole list once the confirmation is accepted', async () => {

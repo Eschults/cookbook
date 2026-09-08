@@ -6,6 +6,7 @@ import { useShoppingList } from '../composables/useShoppingList.js'
 import { useLocale } from '../composables/useLocale.js'
 import { stripInline } from '../services/markdown.js'
 import { toDisplayAmount } from '../services/units.js'
+import { pluralizeIngredientName, shouldPluralize } from '../services/pluralize.js'
 
 const { shoppingList, itemCount, totalCount, toggleItem, removeItem, clearList } = useShoppingList()
 const { t } = useI18n()
@@ -26,7 +27,8 @@ const sortedItems = computed(() => [...shoppingList.value].sort((a, b) => {
  * a thing to pick up in a shop, not a link to follow.
  */
 function displayName(item) {
-  const name = stripInline(item.name)
+  const stripped = stripInline(item.name)
+  const name = shouldPluralize(item.quantity, item.unit) ? pluralizeIngredientName(stripped) : stripped
   return name.charAt(0).toUpperCase() + name.slice(1)
 }
 

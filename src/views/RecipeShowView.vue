@@ -6,6 +6,7 @@ import AddToShoppingListDialog from '../components/AddToShoppingListDialog.vue'
 import { useShoppingList } from '../composables/useShoppingList.js'
 import { renderInline } from '../services/markdown.js'
 import { formatAmount } from '../services/units.js'
+import { pluralizeIngredientName, shouldPluralize } from '../services/pluralize.js'
 
 const props = defineProps({ recipes: { type: Array, required: true } })
 const route = useRoute()
@@ -27,6 +28,10 @@ const groups = computed(() => {
   }
   return result
 })
+
+function displayName(ingredient) {
+  return shouldPluralize(ingredient.quantity, ingredient.unit) ? pluralizeIngredientName(ingredient.name) : ingredient.name
+}
 
 function added(multiplier) {
   addRecipe(recipe.value, multiplier)
@@ -71,8 +76,8 @@ function added(multiplier) {
                   <span class="mt-2 size-2 shrink-0 rounded-full bg-blue-500"></span>
                   <div>
                     <span v-if="ingredient.quantity != null" class="font-bold text-slate-900">{{ formatAmount(ingredient.quantity, ingredient.unit) }}</span>
-                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(ingredient.name)"></a>
-                    <span v-else :class="['markdown text-slate-600', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(ingredient.name)"></span>
+                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></a>
+                    <span v-else :class="['markdown text-slate-600', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></span>
                   </div>
                 </div>
               </li>
