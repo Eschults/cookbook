@@ -101,9 +101,19 @@ describe('addRecipe', () => {
     list.addRecipe(crepes, 1)
     list.addRecipe(canneles, 1)
 
+    // 500 cL of milk is 5 L, and milk weighs 1.03 g/mL, so it contributes
+    // 5150 g rather than the 5000 g a water-density approximation would give.
     expect(list.shoppingList.value).toEqual([
-      expect.objectContaining({ name: 'lait', quantity: 5500, unit: 'g' })
+      expect.objectContaining({ name: 'lait', quantity: 5650, unit: 'g' })
     ])
+  })
+
+  it('weighs a volume of oil at its own density, not water’s', async () => {
+    const recipe = makeRecipe({ ingredients: [ingredient('huile d’olive', 1, 'L')] })
+    const list = await withRecipes([recipe])
+    list.addRecipe(recipe, 1)
+
+    expect(list.shoppingList.value[0].quantity).toBe(915)
   })
 
   it('sums a quantity onto a row that started without one', async () => {
@@ -178,6 +188,83 @@ describe('addRecipe', () => {
   })
 })
 
+describe('addExtraItem', () => {
+  it('adds a row for something no recipe calls for', async () => {
+    const list = await withRecipes([])
+    list.addExtraItem('huile d’olive', 2, 'bouteilles')
+
+    expect(list.shoppingList.value).toEqual([
+      expect.objectContaining({ name: 'huile d’olive', quantity: 2, unit: 'bouteilles', checked: false })
+    ])
+  })
+
+  it('leaves the row without an amount when no quantity is given', async () => {
+    const list = await withRecipes([])
+    list.addExtraItem('huile d’olive', null, '')
+
+    expect(list.shoppingList.value[0].quantity).toBeNull()
+  })
+
+  it('trims the name and ignores one that is only whitespace', async () => {
+    const list = await withRecipes([])
+    list.addExtraItem('  beurre  ', 1, '')
+    list.addExtraItem('   ', 1, '')
+
+    expect(list.shoppingList.value.map(item => item.name)).toEqual(['beurre'])
+  })
+
+  it('sums repeated adds of the same thing onto one row', async () => {
+    const list = await withRecipes([])
+    list.addExtraItem('huile d’olive', 2, 'bouteilles')
+    list.addExtraItem('huile d’olive', 1, 'bouteilles')
+
+    expect(list.shoppingList.value).toHaveLength(1)
+    expect(list.shoppingList.value[0].quantity).toBe(3)
+  })
+
+  it('merges with the same ingredient coming from a recipe', async () => {
+    const recipe = makeRecipe({ ingredients: [ingredient('beurre', 100, 'g')] })
+    const list = await withRecipes([recipe])
+    list.addRecipe(recipe, 1)
+    list.addExtraItem('beurre', 250, 'g')
+
+    expect(list.shoppingList.value).toHaveLength(1)
+    expect(list.shoppingList.value[0].quantity).toBe(350)
+  })
+
+  it('converts to the canonical unit, so 1 kg lands on the gram row', async () => {
+    const recipe = makeRecipe({ ingredients: [ingredient('farine', 500, 'g')] })
+    const list = await withRecipes([recipe])
+    list.addRecipe(recipe, 1)
+    list.addExtraItem('farine', 1, 'kg')
+
+    expect(list.shoppingList.value).toHaveLength(1)
+    expect(list.shoppingList.value[0]).toMatchObject({ quantity: 1500, unit: 'g' })
+  })
+
+  it('lists a staple a recipe would have hidden, since it was asked for by name', async () => {
+    // `sel` is on the always-excluded list: nobody shops for the salt a
+    // recipe mentions, but someone typing it into the form means it.
+    const list = await withRecipes([])
+    list.addExtraItem('sel', 1, '')
+
+    expect(list.shoppingList.value.map(item => item.name)).toEqual(['sel'])
+  })
+
+  it('brings back something that had been removed from the list', async () => {
+    const recipe = makeRecipe({ ingredients: [ingredient('beurre', 100, 'g')] })
+    const list = await withRecipes([recipe])
+    list.addRecipe(recipe, 1)
+    list.removeItem(list.shoppingList.value[0].id)
+    expect(list.shoppingList.value).toEqual([])
+
+    list.addExtraItem('beurre', 250, 'g')
+
+    expect(list.state.excluded).toEqual([])
+    expect(list.shoppingList.value[0].quantity).toBe(350)
+  })
+})
+
 describe('mutations', () => {
   it('toggles an item and updates the outstanding count', async () => {
     const list = await withRecipes([makeRecipe()])
@@ -219,13 +306,23 @@ describe('mutations', () => {
     expect(list.state.excluded).toEqual([id])
   })
 
-  it('clears the list and the menu together', async () => {
+  it('clears the list, the menu and the hand-added items together', async () => {
     const list = await withRecipes([makeRecipe()])
     list.addRecipe(makeRecipe(), 1)
+    list.addExtraItem('huile d’olive', 2, 'bouteilles')
     list.clearList()
 
     expect(list.shoppingList.value).toEqual([])
     expect(list.state.menu).toEqual([])
+    expect(list.state.extras).toEqual([])
+  })
+
+  it('excludes a hand-added item like any other row', async () => {
+    const list = await withRecipes([])
+    list.addExtraItem('huile d’olive', 2, 'bouteilles')
+    list.removeItem(list.shoppingList.value[0].id)
+
+    expect(list.shoppingList.value).toEqual([])
   })
 
   it('removes one recipe from both the list and the menu', async () => {
@@ -251,5 +348,18 @@ describe('persistence', () => {
 
     expect(reloaded.shoppingList.value).toHaveLength(3)
     expect(reloaded.state.menu[0].multiplier).toBe(2)
+  })
+
+  it('keeps hand-added items across a reload', async () => {
+    saveRecipeCache({ sha: 'sha1', files: {}, version: __APP_VERSION__ })
+    ;(await import('../../src/composables/useShoppingList.js')).useShoppingList()
+      .addExtraItem('huile d’olive', 2, 'bouteilles')
+
+    vi.resetModules()
+    const reloaded = (await import('../../src/composables/useShoppingList.js')).useShoppingList()
+
+    expect(reloaded.shoppingList.value).toEqual([
+      expect.objectContaining({ name: 'huile d’olive', quantity: 2, unit: 'bouteilles' })
+    ])
   })
 })

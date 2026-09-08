@@ -6,9 +6,11 @@ import { useShoppingList } from '../composables/useShoppingList.js'
 import { useLocale } from '../composables/useLocale.js'
 import { stripInline } from '../services/markdown.js'
 import { toDisplayAmount } from '../services/units.js'
+import { densityOf } from '../services/densities.js'
 import { pluralizeIngredientName, shouldPluralize } from '../services/pluralize.js'
+import AddShoppingItemDialog from '../components/AddShoppingItemDialog.vue'
 
-const { shoppingList, itemCount, totalCount, toggleItem, removeItem, clearList } = useShoppingList()
+const { shoppingList, itemCount, totalCount, toggleItem, removeItem, clearList, addExtraItem } = useShoppingList()
 const { t } = useI18n()
 const { locale, collator } = useLocale()
 
@@ -30,6 +32,13 @@ function displayName(item) {
   const stripped = stripInline(item.name)
   const name = shouldPluralize(item.quantity, item.unit) ? pluralizeIngredientName(stripped) : stripped
   return name.charAt(0).toUpperCase() + name.slice(1)
+}
+
+const showAddDialog = ref(false)
+
+function addItem({ name, quantity, unit }) {
+  addExtraItem(name, quantity, unit)
+  showAddDialog.value = false
 }
 
 /** Wipes work that cannot be recovered, so it asks first. */
@@ -107,7 +116,9 @@ const stripDiacritics = value => value.normalize('NFD').replace(/\p{Diacritic}/g
 function formatQuantity(item) {
   if (item.quantity == null) return ''
   if (UNQUANTIFIED_UNIT.test(stripDiacritics(item.unit).toLowerCase())) return ''
-  const { quantity, unit } = toDisplayAmount(item.quantity, item.unit)
+  // Weighing is the recipe page's business; here the amount should read the
+  // way the thing is sold, which for a liquid is by volume.
+  const { quantity, unit } = toDisplayAmount(item.quantity, item.unit, { density: densityOf(item.name) })
   const rounded = Math.round(quantity * 100) / 100
   return `${rounded.toLocaleString(locale.value)} ${unit}`.trim()
 }
@@ -123,7 +134,13 @@ function formatQuantity(item) {
            narrow screen forces them onto their own line. -->
       <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <p class="text-slate-500">{{ t('list.remaining', { n: itemCount }) }} · {{ t('list.total', { n: totalCount }) }}</p>
-        <button v-if="shoppingList.length" @click="confirmClear" class="ml-auto rounded-xl px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50">{{ t('common.clearAll') }}</button>
+        <div class="ml-auto flex items-center gap-1">
+          <button @click="showAddDialog = true" class="rounded-xl px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50">{{ t('list.addItem') }}</button>
+          <!-- Wiping the whole list is a rare, destructive action that a phone
+               header has no room for: it stays a desktop affordance, where
+               swipe-to-delete is not available either. -->
+          <button v-if="shoppingList.length" @click="confirmClear" class="hidden rounded-xl px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50 sm:block">{{ t('common.clearAll') }}</button>
+        </div>
       </div>
     </div>
 
@@ -131,7 +148,10 @@ function formatQuantity(item) {
       <div class="text-5xl">🛒</div>
       <h2 class="mt-4 text-xl font-black text-slate-900">{{ t('list.emptyTitle') }}</h2>
       <p class="mt-2 text-sm text-slate-500">{{ t('list.emptyHint') }}</p>
-      <RouterLink to="/" class="mt-5 inline-block rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white">{{ t('common.browseRecipes') }}</RouterLink>
+      <div class="mt-5 flex flex-wrap justify-center gap-2">
+        <RouterLink to="/" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white">{{ t('common.browseRecipes') }}</RouterLink>
+        <button @click="showAddDialog = true" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">{{ t('list.addItem') }}</button>
+      </div>
     </div>
 
     <div v-else class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -170,6 +190,8 @@ function formatQuantity(item) {
         </li>
       </TransitionGroup>
     </div>
+
+    <AddShoppingItemDialog v-if="showAddDialog" @cancel="showAddDialog = false" @add="addItem" />
   </section>
 </template>
 

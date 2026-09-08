@@ -10,13 +10,27 @@
  * is not true in physics — a litre of oil is not a kilo — but it is what a
  * cook means when they write milk as either, and it is the only way to put
  * two differently-measured lines of the same ingredient onto one row.
+ *
+ * Where a real density is known (densities.js), it is used instead of that
+ * approximation, in both directions: a volume becomes the mass it actually
+ * weighs, and a mass is shown back as the volume a shop sells it in.
  */
+import { WATER_DENSITY } from './densities.js'
 
-/** How many grams one of each metric unit is worth. */
-const GRAMS_PER_UNIT = {
+
+/** How many grams one of each metric mass unit is worth. */
+const GRAMS_PER_MASS_UNIT = {
   mg: 0.001,
   g: 1,
-  kg: 1000,
+  kg: 1000
+}
+
+/**
+ * How many millilitres one of each metric volume unit is worth. These reach
+ * grams through a density rather than a fixed factor, so "50 cL of oil" is
+ * stored as the 458 g it actually weighs.
+ */
+const ML_PER_VOLUME_UNIT = {
   ml: 1,
   cl: 10,
   dl: 100,
@@ -55,6 +69,14 @@ const ALIASES = {
 /** Above this many grams, the amount reads better in kilos. */
 const KILO_THRESHOLD = 1000
 
+/**
+ * Above this many millilitres, the amount reads better in litres. It is the
+ * same figure as KILO_THRESHOLD and stays a separate constant on purpose:
+ * they mean different things, and the gram-per-millilitre equivalence this
+ * file is built on is the only reason they coincide.
+ */
+const LITRE_THRESHOLD = 1000
+
 function canonicalUnit(unit) {
   const key = (unit || '').trim().toLowerCase()
   return ALIASES[key] || key
@@ -64,22 +86,48 @@ function canonicalUnit(unit) {
  * The amount as it is stored and merged: metric units collapse to grams, and
  * anything else — spoons, pinches, "4 oeufs" — is left exactly as written,
  * since there is no sensible conversion for it.
+ *
+ * A volume reaches grams through `density` (see densities.js), which defaults
+ * to water. That default is what makes an ingredient nobody has a density for
+ * behave exactly as it did when a millilitre was simply called a gram.
  */
-export function toBaseAmount(quantity, unit) {
-  const grams = GRAMS_PER_UNIT[canonicalUnit(unit)]
-  if (!grams) return { quantity, unit }
-  if (quantity == null) return { quantity, unit: 'g' }
-  return { quantity: quantity * grams, unit: 'g' }
+export function toBaseAmount(quantity, unit, { density = WATER_DENSITY } = {}) {
+  const key = canonicalUnit(unit)
+
+  const grams = GRAMS_PER_MASS_UNIT[key]
+  if (grams) {
+    if (quantity == null) return { quantity, unit: 'g' }
+    return { quantity: quantity * grams, unit: 'g' }
+  }
+
+  const millilitres = ML_PER_VOLUME_UNIT[key]
+  if (millilitres) {
+    if (quantity == null) return { quantity, unit: 'g' }
+    return { quantity: quantity * millilitres * density, unit: 'g' }
+  }
+
+  return { quantity, unit }
 }
 
 /**
  * The amount as it is shown: a gram figure past the kilo threshold reads
  * better in kilos, so 1200 g becomes 1.2 kg while 200 g stays as it is.
+ *
+ * Passing a `density` switches the same figure to the volume scale a shop
+ * sells by: 915 g of olive oil is a litre of it, not 915 mL. Only the
+ * canonical gram unit is rescaled; anything left in its own unit — spoons,
+ * "4 oeufs" — is passed through untouched.
  */
-export function toDisplayAmount(quantity, unit) {
-  if (unit === 'g' && quantity != null && Math.abs(quantity) >= KILO_THRESHOLD) {
-    return { quantity: quantity / KILO_THRESHOLD, unit: 'kg' }
+export function toDisplayAmount(quantity, unit, { density = null } = {}) {
+  if (unit !== 'g' || quantity == null) return { quantity, unit }
+
+  if (density) {
+    const millilitres = quantity / density
+    if (Math.abs(millilitres) >= LITRE_THRESHOLD) return { quantity: millilitres / LITRE_THRESHOLD, unit: 'L' }
+    return { quantity: millilitres, unit: 'mL' }
   }
+
+  if (Math.abs(quantity) >= KILO_THRESHOLD) return { quantity: quantity / KILO_THRESHOLD, unit: 'kg' }
   return { quantity, unit }
 }
 

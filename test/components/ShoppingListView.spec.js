@@ -113,6 +113,37 @@ describe('ShoppingListView', () => {
     expect(list.shoppingList.value).toHaveLength(2)
   })
 
+  it('adds an item nobody cooked from, through the dialog', async () => {
+    const view = await mountView(ShoppingListView)
+    await view.findAll('button').find(b => b.text() === 'Ajouter').trigger('click')
+
+    await view.find('#extra-name').setValue('huile d’olive')
+    await view.find('#extra-quantity').setValue('2 bouteilles')
+    await view.find('form').trigger('submit')
+
+    expect(view.text()).toContain('Huile d’olive')
+    expect(view.text()).toContain('2 bouteilles')
+    // The dialog closes behind the item it just added.
+    expect(view.find('form').exists()).toBe(false)
+  })
+
+  it('offers the dialog from the empty state too', async () => {
+    const view = await mountView(ShoppingListView)
+    expect(view.text()).toContain('Votre panier est vide')
+
+    await view.findAll('button').find(b => b.text() === 'Ajouter').trigger('click')
+    expect(view.find('#extra-name').exists()).toBe(true)
+  })
+
+  it('keeps the clear-all button off the phone header', async () => {
+    await addRecipe(makeRecipe(), 1)
+    const view = await mountView(ShoppingListView)
+    const clear = view.findAll('button').find(b => b.text() === 'Tout effacer')
+
+    expect(clear.classes()).toContain('hidden')
+    expect(clear.classes()).toContain('sm:block')
+  })
+
   it('leads with the ingredient name and trails the quantity', async () => {
     await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
     const view = await mountView(ShoppingListView)
@@ -218,14 +249,34 @@ describe('ShoppingListView', () => {
   })
 
   it('shows a large gram figure in kilos', async () => {
-    await addRecipe(makeRecipe({
-      ingredients: [ingredient('flour', 1200, 'g'), ingredient('milk', 150, 'cl')]
-    }), 1)
+    await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 1200, 'g')] }), 1)
     const view = await mountView(ShoppingListView)
 
     expect(view.text()).toContain('1,2 kg')
-    // 150 cL normalises to 1500 g, which then reads as kilos like any other.
-    expect(view.text()).toContain('1,5 kg')
+  })
+
+  it('shows a liquid by volume, since that is how it is sold', async () => {
+    // Milk is stored in grams like everything else, but nobody buys 1545 g of
+    // it; at 1.03 g/mL that is the 1.5 L carton the shelf is stocked with.
+    await addRecipe(makeRecipe({ ingredients: [ingredient('milk', 150, 'cl')] }), 1)
+    const view = await mountView(ShoppingListView)
+
+    expect(view.text()).toContain('1,5 L')
+    expect(view.text()).not.toContain('kg')
+  })
+
+  it('keeps a small liquid amount in millilitres', async () => {
+    await addRecipe(makeRecipe({ ingredients: [ingredient('huile d’olive', 25, 'cl')] }), 1)
+    const view = await mountView(ShoppingListView)
+
+    expect(view.text()).toContain('250 mL')
+  })
+
+  it('still weighs a solid, however oily its name sounds', async () => {
+    await addRecipe(makeRecipe({ ingredients: [ingredient('olives', 200, 'g')] }), 1)
+    const view = await mountView(ShoppingListView)
+
+    expect(view.text()).toContain('200 g')
   })
 
   // The row slides under a fixed reveal button: the button is translated by

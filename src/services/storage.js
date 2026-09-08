@@ -29,16 +29,34 @@ function normalizeMenuEntry(entry) {
   return { recipeId: entry.recipeId, multiplier: entry.multiplier, addedAt: entry.addedAt }
 }
 
+/**
+ * A line the user typed rather than one a recipe brought in. Unlike a menu
+ * entry there is nothing upstream to look it up against, so the name and
+ * amount are the state: an extra is only ever what was typed.
+ */
+function normalizeExtra(entry) {
+  return {
+    name: String(entry.name),
+    quantity: Number.isFinite(entry.quantity) ? entry.quantity : null,
+    unit: typeof entry.unit === 'string' ? entry.unit : '',
+    addedAt: entry.addedAt
+  }
+}
+
+/** An extra with no name has no row to render, so it is dropped on read. */
+const hasName = entry => entry && typeof entry.name === 'string' && entry.name.trim()
+
 export function loadAppState() {
   try {
     const value = JSON.parse(localStorage.getItem(STATE_KEY) || '{}')
     return {
       menu: Array.isArray(value.menu) ? value.menu.map(normalizeMenuEntry) : [],
       checked: value.checked && typeof value.checked === 'object' ? value.checked : {},
-      excluded: Array.isArray(value.excluded) ? value.excluded : []
+      excluded: Array.isArray(value.excluded) ? value.excluded : [],
+      extras: Array.isArray(value.extras) ? value.extras.filter(hasName).map(normalizeExtra) : []
     }
   } catch {
-    return { menu: [], checked: {}, excluded: [] }
+    return { menu: [], checked: {}, excluded: [], extras: [] }
   }
 }
 

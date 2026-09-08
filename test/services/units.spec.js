@@ -23,6 +23,16 @@ describe('toBaseAmount', () => {
     expect(toBaseAmount(2, 'Litres')).toEqual({ quantity: 2000, unit: 'g' })
   })
 
+  it('weighs a volume at the ingredient density it is given', () => {
+    expect(toBaseAmount(1, 'L', { density: 0.915 })).toEqual({ quantity: 915, unit: 'g' })
+    expect(toBaseAmount(50, 'cl', { density: 0.915 })).toEqual({ quantity: 457.5, unit: 'g' })
+  })
+
+  it('leaves a mass alone whatever the density', () => {
+    expect(toBaseAmount(500, 'g', { density: 0.915 })).toEqual({ quantity: 500, unit: 'g' })
+    expect(toBaseAmount(1.5, 'kg', { density: 0.915 })).toEqual({ quantity: 1500, unit: 'g' })
+  })
+
   it('leaves a unit it cannot convert exactly as written', () => {
     expect(toBaseAmount(2, 'cuillères à soupe')).toEqual({ quantity: 2, unit: 'cuillères à soupe' })
     expect(toBaseAmount(4, '')).toEqual({ quantity: 4, unit: '' })
@@ -47,6 +57,24 @@ describe('toDisplayAmount', () => {
   it('leaves other units alone', () => {
     expect(toDisplayAmount(4, '')).toEqual({ quantity: 4, unit: '' })
     expect(toDisplayAmount(2000, 'oeufs')).toEqual({ quantity: 2000, unit: 'oeufs' })
+  })
+
+  it('shows a liquid by volume, at its own density', () => {
+    // A litre of olive oil weighs 915 g, so that mass is exactly 1 L of it.
+    expect(toDisplayAmount(915, 'g', { density: 0.915 })).toEqual({ quantity: 1, unit: 'L' })
+    expect(toDisplayAmount(457.5, 'g', { density: 0.915 })).toEqual({ quantity: 500, unit: 'mL' })
+  })
+
+  it('keeps a small liquid amount in millilitres', () => {
+    expect(toDisplayAmount(100, 'g', { density: 1 })).toEqual({ quantity: 100, unit: 'mL' })
+  })
+
+  it('ignores a density on a unit that was never converted to grams', () => {
+    expect(toDisplayAmount(2, 'cuillères', { density: 0.915 })).toEqual({ quantity: 2, unit: 'cuillères' })
+  })
+
+  it('falls back to weight when there is no density', () => {
+    expect(toDisplayAmount(1200, 'g', { density: null })).toEqual({ quantity: 1.2, unit: 'kg' })
   })
 })
 

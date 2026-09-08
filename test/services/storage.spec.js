@@ -27,23 +27,43 @@ describe('recipe cache', () => {
 })
 
 describe('app state', () => {
+  const empty = { menu: [], checked: {}, excluded: [], extras: [] }
+
   it('round trips', () => {
-    saveAppState({ menu: [{ recipeId: 'r' }], checked: { 'beurre g': 123 }, excluded: ['sel '] })
-    expect(loadAppState()).toEqual({ menu: [{ recipeId: 'r' }], checked: { 'beurre g': 123 }, excluded: ['sel '] })
+    const state = {
+      menu: [{ recipeId: 'r' }],
+      checked: { 'beurre g': 123 },
+      excluded: ['sel '],
+      extras: [{ name: 'huile d’olive', quantity: 2, unit: 'bouteilles', addedAt: '2026-01-01T00:00:00.000Z' }]
+    }
+    saveAppState(state)
+    expect(loadAppState()).toEqual(state)
   })
 
   it('defaults every collection', () => {
-    expect(loadAppState()).toEqual({ menu: [], checked: {}, excluded: [] })
+    expect(loadAppState()).toEqual(empty)
   })
 
   it('repairs a stored value of the wrong shape', () => {
-    localStorage.setItem('cookbook:app-state:v1', JSON.stringify({ menu: 'nope', checked: 'nope', excluded: 'nope' }))
-    expect(loadAppState()).toEqual({ menu: [], checked: {}, excluded: [] })
+    localStorage.setItem('cookbook:app-state:v1', JSON.stringify({ menu: 'nope', checked: 'nope', excluded: 'nope', extras: 'nope' }))
+    expect(loadAppState()).toEqual(empty)
   })
 
   it('survives corrupt JSON', () => {
     localStorage.setItem('cookbook:app-state:v1', 'x')
-    expect(loadAppState()).toEqual({ menu: [], checked: {}, excluded: [] })
+    expect(loadAppState()).toEqual(empty)
+  })
+
+  it('defaults extras written before they existed', () => {
+    localStorage.setItem('cookbook:app-state:v1', JSON.stringify({ menu: [], checked: {}, excluded: [] }))
+    expect(loadAppState().extras).toEqual([])
+  })
+
+  it('drops an extra with no usable name and repairs the rest', () => {
+    localStorage.setItem('cookbook:app-state:v1', JSON.stringify({
+      extras: [{ name: '  ' }, { name: 'sel', quantity: 'lots', unit: 42 }]
+    }))
+    expect(loadAppState().extras).toEqual([{ name: 'sel', quantity: null, unit: '', addedAt: undefined }])
   })
 })
 
