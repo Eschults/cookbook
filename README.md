@@ -85,7 +85,7 @@ The site builds to static files and ships to GitHub Pages from
 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Pushing to `main` runs
 the test suite first, and the build only starts if it passes.
 
-Two things to change in a fork:
+Three things to change in a fork:
 
 **`public/CNAME`** holds the custom domain — `cookbook.saunier.me`. It sits in `public/`
 so that Vite copies it into `dist/`, which is what gets published. **Delete this file
@@ -103,6 +103,16 @@ export default defineConfig({
   base: '/cookbook/',
   // …
 })
+```
+
+**The social card tags in [`index.html`](index.html)**. Open Graph needs absolute URLs,
+so `og:url`, `og:image` and `twitter:image` name `cookbook.saunier.me` literally: point
+them at your own domain or a shared link will advertise this one. The card image itself
+is `public/og.png`, rendered from `public/og.svg` with
+[librsvg](https://gitlab.gnome.org/GNOME/librsvg):
+
+```bash
+rsvg-convert -w 1200 -h 630 public/og.svg -o public/og.png
 ```
 
 Set *Settings → Pages → Source* to **GitHub Actions** either way, otherwise the workflow

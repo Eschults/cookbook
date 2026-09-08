@@ -5,8 +5,37 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8fafc" />
-    <meta name="description" content="Collection de recettes & Liste de course" />
     <title>Cookbook</title>
+    <meta name="description" content="Recettes &amp; liste de courses. Un carnet de recettes RecipeMD, un menu de la semaine et la liste de courses qui en sort." />
+
+    <!--
+      Social cards. The app is a single page behind a hash router, so every
+      shared URL serves this file: one static set of tags covers the whole
+      site. Crawlers do not run JavaScript and drop the #fragment anyway.
+      Absolute URLs are required here, and og.png is regenerated from og.svg
+      with `rsvg-convert -w 1200 -h 630 public/og.svg -o public/og.png`.
+      Forking? og:url and the two image URLs are what to repoint at your
+      own domain.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cookbook" />
+    <meta property="og:url" content="https://cookbook.saunier.me/" />
+    <meta property="og:title" content="Cookbook" />
+    <meta property="og:description" content="Recettes &amp; liste de courses. Un carnet de recettes RecipeMD, un menu de la semaine et la liste de courses qui en sort." />
+    <meta property="og:image" content="https://cookbook.saunier.me/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Cookbook, recettes &amp; liste de courses" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:creator" content="@ssaunier" />
+    <meta name="twitter:title" content="Cookbook" />
+    <meta name="twitter:description" content="Recettes &amp; liste de courses. Un carnet de recettes RecipeMD, un menu de la semaine et la liste de courses qui en sort." />
+    <meta name="twitter:image" content="https://cookbook.saunier.me/og.png" />
+    <meta name="twitter:image:alt" content="Cookbook, recettes &amp; liste de courses" />
   </head>
   <body>
     <div id="app"></div>
