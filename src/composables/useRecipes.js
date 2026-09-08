@@ -29,16 +29,17 @@ const recipes = computed(() =>
 // the only read: from here on `downloaded` and `cachedSha` are what the cache
 // holds, so refresh() compares against them rather than reading it again.
 //
-// A cache built by an older version of this app is discarded rather than
-// trusted: a fix to how a recipe is parsed or rendered only reaches someone
-// with an unchanged upstream sha once their next visit treats that stale
-// cache as empty and downloads again, rather than needing them to notice and
-// clear it by hand.
+// A cache written by an older version of this app is still shown, but not
+// trusted for incremental work: leaving `cachedFiles` empty forces the next
+// refresh to re-fetch and re-parse every file, which is how a fix to the
+// parser reaches someone whose upstream sha has not moved. Showing it anyway
+// is what keeps a failed refresh - GitHub rate-limiting the browser, say -
+// from replacing a complete cookbook with an error page.
 const cached = loadRecipeCache()
-if (cached?.files && Object.keys(cached.files).length && cached.version === __APP_VERSION__) {
-  cachedFiles = cached.files
+if (cached?.files && Object.keys(cached.files).length) {
   downloaded.value = filesToRecipes(cached.files)
   cachedSha.value = cached.sha || ''
+  if (cached.version === __APP_VERSION__) cachedFiles = cached.files
 }
 
 export function useRecipes() {
@@ -50,7 +51,10 @@ export function useRecipes() {
     try {
       const latestSha = await getLatestSha()
 
-      if (latestSha === cachedSha.value && downloaded.value.length) {
+      // `cachedFiles` is empty when what is on screen came from a cache an
+      // older version of this app wrote, which has to be re-downloaded even
+      // though the repository itself has not moved.
+      if (latestSha === cachedSha.value && downloaded.value.length && Object.keys(cachedFiles).length) {
         return
       }
 

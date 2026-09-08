@@ -29,13 +29,16 @@ const fileEntry = (recipe, sha = 'sha') => ({ sha, recipe })
  * localStorage after importing would be seeding a store nobody re-reads.
  * Re-importing hands back a fresh github mock too, which the caller arms.
  */
-async function reloadWithCache(cache) {
-  localStorage.setItem('cookbook:recipe-cache:v3', JSON.stringify({ version: __APP_VERSION__, ...cache }))
+async function reloadWithCache(cache, version = __APP_VERSION__) {
+  localStorage.setItem('cookbook:recipe-cache:v3', JSON.stringify({ version, ...cache }))
   vi.resetModules()
   const composable = await import('../../src/composables/useRecipes.js')
   const mocked = await import('../../src/services/github.js')
   return { store: composable.useRecipes(), github: mocked }
 }
+
+/** The cache a previous deploy left behind, stamped with its version. */
+const reloadWithStaleCache = cache => reloadWithCache(cache, 'old-build')
 
 describe('refresh', () => {
   it('downloads and caches when there is no cache', async () => {
@@ -79,22 +82,18 @@ describe('refresh', () => {
     expect(gh.downloadRecipes).toHaveBeenCalledWith(previousFiles)
   })
 
-  it('ignores a cache left over from a different app version and re-downloads', async () => {
-    // Written directly rather than through reloadWithCache, which always
-    // stamps the current build's version — this simulates a cache a previous
-    // deploy left behind.
-    localStorage.setItem('cookbook:recipe-cache:v3', JSON.stringify({ sha: 'sha1', files: { a: fileEntry(alpha) }, version: 'old-build' }))
-    vi.resetModules()
-    const { useRecipes: useRecipesAfterReload } = await import('../../src/composables/useRecipes.js')
-    const gh = await import('../../src/services/github.js')
+  it('shows a cache from an older app version while re-downloading it in full', async () => {
+    const { store, github: gh } = await reloadWithStaleCache({ sha: 'sha1', files: { a: fileEntry(alpha) } })
     gh.getLatestSha.mockResolvedValue('sha1')
     gh.downloadRecipes.mockResolvedValue({ z: fileEntry(zulu) })
 
-    const store = useRecipesAfterReload()
-    expect(store.recipes.value).toEqual([])
+    expect(store.recipes.value.map(r => r.title)).toEqual(['Alpha'])
 
     await store.refresh()
-    expect(gh.downloadRecipes).toHaveBeenCalled()
+
+    // Re-downloaded despite the unchanged sha, and without the stale files,
+    // so every recipe is fetched and parsed again by this version's parser.
+    expect(gh.downloadRecipes).toHaveBeenCalledWith({})
     expect(store.recipes.value.map(r => r.title)).toEqual(['Zulu'])
   })
 
@@ -127,6 +126,16 @@ describe('failure handling', () => {
 
     expect(store.error.value).toBe('')
     expect(store.recipes.value).toHaveLength(1)
+  })
+
+  it('keeps showing a cache from an older app version when the refresh fails', async () => {
+    const { store, github: gh } = await reloadWithStaleCache({ sha: 'sha1', files: { a: fileEntry(alpha) } })
+    gh.getLatestSha.mockRejectedValue(new Error('GitHub returned 403'))
+
+    await store.refresh()
+
+    expect(store.error.value).toBe('')
+    expect(store.recipes.value.map(r => r.title)).toEqual(['Alpha'])
   })
 
   it('falls back to a translated message when the error has none', async () => {
