@@ -76,8 +76,8 @@ function added(multiplier) {
                   <span class="mt-2 size-2 shrink-0 rounded-full bg-blue-500"></span>
                   <div>
                     <span v-if="ingredient.quantity != null" class="font-bold text-slate-900">{{ formatAmount(ingredient.quantity, ingredient.unit) }}</span>
-                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></a>
-                    <span v-else :class="['markdown text-slate-600', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></span>
+                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></a>
+                    <span v-else :class="['markdown font-medium text-slate-700', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></span>
                   </div>
                 </div>
               </li>
@@ -93,7 +93,7 @@ function added(multiplier) {
             <ol class="mt-3 space-y-4">
               <li v-for="(step, index) in group.steps" :key="index" class="flex gap-4">
                 <span class="grid size-8 shrink-0 place-items-center rounded-full bg-blue-100 text-sm font-black text-blue-800">{{ index + 1 }}</span>
-                <p class="markdown pt-1 leading-7 text-slate-600" v-html="renderInline(step)"></p>
+                <p class="markdown pt-1 font-medium leading-7 text-slate-700" v-html="renderInline(step)"></p>
               </li>
             </ol>
           </div>
