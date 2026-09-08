@@ -1,15 +1,28 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useLocale } from '../composables/useLocale.js'
 import RecipeCard from '../components/RecipeCard.vue'
 
 const props = defineProps({ recipes: { type: Array, required: true } })
 const { t } = useI18n()
 const { collator } = useLocale()
-const query = ref('')
-const tag = ref('')
+const route = useRoute()
+const router = useRouter()
+const query = ref(route.query.q ?? '')
+const tag = ref(route.query.tag ?? '')
 const searchInput = ref(null)
+
+/**
+ * Mirror the search into the URL's query string. vue-router's history entries
+ * carry it, so navigating to a recipe and back restores the search instead of
+ * losing it — `replace` (not `push`) keeps every keystroke from adding its own
+ * back-button stop.
+ */
+watch([query, tag], ([q, tg]) => {
+  router.replace({ query: { ...route.query, q: q || undefined, tag: tg || undefined } })
+})
 
 const tags = computed(() => [...new Set(props.recipes.flatMap(recipe => recipe.tags || []))].sort(collator.value.compare))
 
