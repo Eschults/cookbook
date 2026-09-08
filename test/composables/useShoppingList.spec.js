@@ -120,6 +120,20 @@ describe('addRecipe', () => {
     ])
   })
 
+  it('leaves a row quantity untouched when a later ingredient has none', async () => {
+    // Both key to "farine g", but the second addition has no amount of its
+    // own, so it must not zero out or otherwise touch the running total.
+    const a = makeRecipe({ slug: 'a', ingredients: [ingredient('farine', 5, 'g')] })
+    const b = makeRecipe({ slug: 'b', ingredients: [ingredient('farine', null, 'g')] })
+    const list = await withRecipes([a, b])
+    list.addRecipe(a, 1)
+    list.addRecipe(b, 1)
+
+    expect(list.shoppingList.value).toEqual([
+      expect.objectContaining({ name: 'farine', quantity: 5, unit: 'g' })
+    ])
+  })
+
   it('keeps an item ticked off when the recipe is added again', async () => {
     const list = await withRecipes([makeRecipe()])
     list.addRecipe(makeRecipe(), 1)

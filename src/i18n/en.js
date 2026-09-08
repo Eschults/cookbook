@@ -44,7 +44,6 @@ export default {
     addToList: 'Add to shopping list',
     ingredients: 'Ingredients',
     noIngredients: 'This recipe lists no ingredients.',
-    asNeeded: 'As needed',
     method: 'Method',
     noInstructions: 'This recipe has no instructions.',
     source: 'Source | Sources',

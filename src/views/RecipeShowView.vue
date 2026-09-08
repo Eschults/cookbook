@@ -71,9 +71,8 @@ function added(multiplier) {
                   <span class="mt-2 size-2 shrink-0 rounded-full bg-blue-500"></span>
                   <div>
                     <span v-if="ingredient.quantity != null" class="font-bold text-slate-900">{{ formatAmount(ingredient.quantity, ingredient.unit) }}</span>
-                    <span v-else class="font-bold text-slate-500">{{ t('recipe.asNeeded') }}</span>
-                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" class="markdown ml-1 text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800" v-html="renderInline(ingredient.name)"></a>
-                    <span v-else class="markdown ml-1 text-slate-600" v-html="renderInline(ingredient.name)"></span>
+                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(ingredient.name)"></a>
+                    <span v-else :class="['markdown text-slate-600', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(ingredient.name)"></span>
                   </div>
                 </div>
               </li>

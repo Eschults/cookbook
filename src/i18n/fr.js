@@ -44,7 +44,6 @@ export default {
     addToList: 'Ajouter à la liste de courses',
     ingredients: 'Ingrédients',
     noIngredients: 'Cette recette ne liste aucun ingrédient.',
-    asNeeded: 'Selon le goût',
     method: 'Préparation',
     noInstructions: 'Cette recette n’a pas d’instructions.',
     source: 'Source | Sources',

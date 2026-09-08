@@ -20,9 +20,10 @@ describe('RecipeShowView', () => {
     expect(view.text()).toContain('Pour 4 Servings')
   })
 
-  it('marks an ingredient with no quantity as needed to taste', async () => {
+  it('shows an ingredient with no quantity by its name alone', async () => {
     const view = await show([makeRecipe()], 'guacamole')
-    expect(view.text()).toContain('Selon le goût')
+    expect(view.text()).toContain('lemon juice')
+    expect(view.text()).not.toContain('Selon le goût')
   })
 
   it('numbers the steps', async () => {
