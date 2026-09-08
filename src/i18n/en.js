@@ -60,13 +60,26 @@ export default {
     check: 'Check item',
     confirmRemove: 'Remove {name} from the shopping list?',
     confirmClear: 'Clear the whole shopping list?',
-    uncheck: 'Uncheck item'
+    uncheck: 'Uncheck item',
+    addItem: 'Add'
+  },
+
+  addItem: {
+    title: 'Add an item',
+    intro: 'For something to buy that no recipe on your menu calls for.',
+    name: 'Item',
+    namePlaceholder: 'Olive oil',
+    quantity: 'Quantity',
+    quantityHint: 'A number, or a number and a unit: 2, 100 g, 3 bottles.',
+    invalidQuantity: 'Start the quantity with a number, or leave it empty.',
+    add: 'Add to list'
   },
 
   menu: {
     heading: 'Menu',
     count: '{n} meal planned | {n} meals planned',
     openRecipe: 'Open recipe',
+    open: 'View',
     stale: 'Recipe is no longer present in the source repository.',
     confirmRemove: 'Remove {name} from the menu?',
     confirmClear: 'Clear the whole menu and the shopping list?',

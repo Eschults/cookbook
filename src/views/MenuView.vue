@@ -58,7 +58,13 @@ function confirmRemove(entry) {
             <p v-if="entry.recipe?.description" class="mt-0.5 truncate text-sm text-slate-500">{{ entry.recipe.description }}</p>
             <p v-if="!entry.recipe" class="mt-0.5 text-xs text-rose-500">{{ t('menu.stale') }}</p>
           </div>
-          <RouterLink v-if="entry.recipe" :to="`/r/${entry.recipe.slug}`" class="shrink-0 text-sm font-black text-blue-600 hover:text-blue-700">{{ t('menu.openRecipe') }} →</RouterLink>
+          <!-- The row already names the recipe, so on a phone the verb alone
+               says everything the longer label does, and leaves the title
+               room to breathe rather than truncating it further. -->
+          <RouterLink v-if="entry.recipe" :to="`/r/${entry.recipe.slug}`" :aria-label="t('menu.openRecipe')" class="shrink-0 text-sm font-black text-blue-600 hover:text-blue-700">
+            <span class="sm:hidden">{{ t('menu.open') }}</span>
+            <span class="hidden sm:inline">{{ t('menu.openRecipe') }}</span> →
+          </RouterLink>
           <button @click="confirmRemove(entry)" class="shrink-0 text-xs font-bold text-slate-300 hover:text-rose-500">{{ t('common.remove') }}</button>
         </li>
       </ul>

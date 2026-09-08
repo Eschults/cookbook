@@ -60,13 +60,26 @@ export default {
     check: 'Cocher l’article',
     confirmRemove: 'Retirer {name} de la liste de courses ?',
     confirmClear: 'Effacer toute la liste de courses ?',
-    uncheck: 'Décocher l’article'
+    uncheck: 'Décocher l’article',
+    addItem: 'Ajouter'
+  },
+
+  addItem: {
+    title: 'Ajouter un article',
+    intro: 'Pour quelque chose à acheter qu’aucune recette de votre menu ne demande.',
+    name: 'Article',
+    namePlaceholder: 'Huile d’olive',
+    quantity: 'Quantité',
+    quantityHint: 'Un nombre, ou un nombre et une unité : 2, 100 g, 3 bouteilles.',
+    invalidQuantity: 'Commencez la quantité par un nombre, ou laissez le champ vide.',
+    add: 'Ajouter à la liste'
   },
 
   menu: {
     heading: 'Menu',
     count: '{n} repas prévu | {n} repas prévus',
-    openRecipe: 'Ouvrir la recette',
+    openRecipe: 'Voir la recette',
+    open: 'Voir',
     stale: 'Cette recette n’est plus présente dans le dépôt source.',
     confirmRemove: 'Retirer {name} du menu ?',
     confirmClear: 'Effacer tout le menu et la liste de courses ?',

@@ -24,6 +24,16 @@ describe('MenuView', () => {
     expect(view.text()).toContain('×2')
   })
 
+  it('shortens the open link on a phone, keeping the full label for readers', async () => {
+    list.addRecipe(makeRecipe(), 1)
+    const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
+    const link = view.find('a[href="/r/guacamole"]')
+
+    expect(link.find('.sm\\:hidden').text()).toBe('Voir')
+    expect(link.find('.sm\\:inline').text()).toBe('Voir la recette')
+    expect(link.attributes('aria-label')).toBe('Voir la recette')
+  })
+
   it('counts the planned meals', async () => {
     const view = await mountView(MenuView, { props: { recipes: [] } })
     expect(view.text()).toContain('0 repas prévu')
