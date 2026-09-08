@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
 import { loadLocale } from '../services/storage.js'
-import { DEFAULT_LOCALE } from './locales.js'
+import { browserLocale, DEFAULT_LOCALE } from './locales.js'
 import en from './en.js'
 import fr from './fr.js'
 
@@ -18,7 +18,10 @@ export function frenchPlural(choice, choicesLength) {
 
 export const i18n = createI18n({
   legacy: false,
-  locale: loadLocale() || DEFAULT_LOCALE,
+  // A stored choice wins, because it was made on purpose and possibly against
+  // the browser's own language. Failing that the browser is asked, and English
+  // is what is left when it wants a language this app does not speak.
+  locale: loadLocale() || browserLocale() || DEFAULT_LOCALE,
   fallbackLocale: 'en',
   messages: { en, fr },
   pluralRules: { fr: frenchPlural }

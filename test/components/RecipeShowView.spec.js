@@ -17,7 +17,7 @@ describe('RecipeShowView', () => {
   it('shows quantities, units and the yield', async () => {
     const view = await show([makeRecipe()], 'guacamole')
     expect(view.text()).toContain('0.5 teaspoon')
-    expect(view.text()).toContain('Pour 4 Servings')
+    expect(view.text()).toContain('Makes 4 Servings')
   })
 
   it('pluralizes a counted ingredient with no unit', async () => {
@@ -115,28 +115,28 @@ describe('RecipeShowView', () => {
 
   it('says so when the slug matches nothing', async () => {
     const view = await show([makeRecipe()], 'missing')
-    expect(view.text()).toContain('Recette introuvable')
+    expect(view.text()).toContain('Recipe not found')
   })
 
   it('handles a recipe with no ingredients or instructions', async () => {
     const view = await show([makeRecipe({ ingredients: [], steps: [] })], 'guacamole')
-    expect(view.text()).toContain('Cette recette ne liste aucun ingrédient.')
-    expect(view.text()).toContain('Cette recette n’a pas d’instructions.')
+    expect(view.text()).toContain('This recipe lists no ingredients.')
+    expect(view.text()).toContain('This recipe has no instructions.')
   })
 
   it('opens the scaling dialog', async () => {
     const view = await show([makeRecipe()], 'guacamole')
-    expect(view.text()).not.toContain('Multiplicateur')
+    expect(view.text()).not.toContain('Multiplier')
 
-    await view.findAll('button').find(b => b.text().includes('Ajouter')).trigger('click')
-    expect(view.text()).toContain('Multiplicateur')
+    await view.findAll('button').find(b => b.text().includes('Add to shopping list')).trigger('click')
+    expect(view.text()).toContain('Multiplier')
   })
 
   it('goes to the shopping list once the recipe is added', async () => {
     const view = await show([makeRecipe()], 'guacamole')
 
-    await view.findAll('button').find(b => b.text().includes('Ajouter')).trigger('click')
-    await view.findAll('button').find(b => b.text() === 'Ajouter à la liste').trigger('click')
+    await view.findAll('button').find(b => b.text().includes('Add to shopping list')).trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Add to list').trigger('click')
     await flushPromises()
 
     expect(view.vm.$route.path).toBe('/shopping-list')

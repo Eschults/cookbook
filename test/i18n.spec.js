@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { i18n, frenchPlural } from '../src/i18n/index.js'
-import { DEFAULT_LOCALE, LOCALES } from '../src/i18n/locales.js'
+import { browserLocale, DEFAULT_LOCALE, LOCALES } from '../src/i18n/locales.js'
 import en from '../src/i18n/en.js'
 import fr from '../src/i18n/fr.js'
 
@@ -20,9 +20,9 @@ const withLocale = (locale, run) => {
 }
 
 describe('catalogues', () => {
-  it('French is the default', () => {
-    expect(DEFAULT_LOCALE).toBe('fr')
-    expect(LOCALES).toContain('en')
+  it('English is the default', () => {
+    expect(DEFAULT_LOCALE).toBe('en')
+    expect(LOCALES).toContain('fr')
   })
 
   it('defines the same keys in both locales', () => {
@@ -80,8 +80,10 @@ describe('pluralisation', () => {
     })
 
   it('renders zero in the French singular', () => {
-    expect(t('index.ingredients', { n: 0 })).toBe('0 ingrédient')
-    expect(t('list.remaining', { n: 0 })).toBe('0 restant')
+    withLocale('fr', () => {
+      expect(t('index.ingredients', { n: 0 })).toBe('0 ingrédient')
+      expect(t('list.remaining', { n: 0 })).toBe('0 restant')
+    })
   })
 
   it('renders zero in the English plural', () => {
@@ -95,22 +97,53 @@ describe('pluralisation', () => {
     [1, '1 ingrédient'],
     [2, '2 ingrédients']
   ])('renders %i in French', (n, expected) => {
-    expect(t('index.ingredients', { n })).toBe(expected)
+    expect(withLocale('fr', () => t('index.ingredients', { n }))).toBe(expected)
   })
 
   it('pluralises the serving sentence', () => {
-    expect(t('dialog.servingsKnown', { n: 1 })).toContain('1 personne.')
-    expect(t('dialog.servingsKnown', { n: 4 })).toContain('4 personnes.')
+    withLocale('fr', () => {
+      expect(t('dialog.servingsKnown', { n: 1 })).toContain('1 personne.')
+      expect(t('dialog.servingsKnown', { n: 4 })).toContain('4 personnes.')
+    })
   })
 })
 
 describe('interpolation', () => {
   it('fills named placeholders', () => {
-    expect(t('dialog.scale', { title: 'Guacamole' })).toBe('Ajuster «\u00A0Guacamole\u00A0»')
+    expect(t('dialog.scale', { title: 'Guacamole' })).toBe('Scale Guacamole')
+    expect(withLocale('fr', () => t('dialog.scale', { title: 'Guacamole' }))).toBe('Ajuster «\u00A0Guacamole\u00A0»')
   })
 
   it('renders the active locale', () => {
-    expect(withLocale('en', () => t('nav.recipes'))).toBe('Recipes')
-    expect(t('nav.recipes')).toBe('Recettes')
+    expect(t('nav.recipes')).toBe('Recipes')
+    expect(withLocale('fr', () => t('nav.recipes'))).toBe('Recettes')
+  })
+})
+
+describe('browserLocale', () => {
+  it('takes the first supported language the browser asks for', () => {
+    expect(browserLocale(['de', 'fr', 'en'])).toBe('fr')
+  })
+
+  it('matches on the primary subtag, so a regional variant still counts', () => {
+    expect(browserLocale(['fr-CA'])).toBe('fr')
+    expect(browserLocale(['EN-GB'])).toBe('en')
+  })
+
+  it('returns null when the browser wants nothing this app speaks', () => {
+    expect(browserLocale(['de-AT', 'it'])).toBeNull()
+    expect(browserLocale([])).toBeNull()
+  })
+
+  it('reads the browser itself when given nothing', () => {
+    const original = Object.getOwnPropertyDescriptor(window.navigator, 'languages')
+    Object.defineProperty(window.navigator, 'languages', { value: ['fr-FR', 'en'], configurable: true })
+
+    try {
+      expect(browserLocale()).toBe('fr')
+    } finally {
+      if (original) Object.defineProperty(window.navigator, 'languages', original)
+      else delete window.navigator.languages
+    }
   })
 })

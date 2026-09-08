@@ -7,12 +7,12 @@ const list = useShoppingList()
 
 beforeEach(() => list.clearList())
 
-const clearAll = view => view.findAll('button').find(button => button.text() === 'Tout effacer')
+const clearAll = view => view.findAll('button').find(button => button.text() === 'Clear all')
 
 describe('MenuView', () => {
   it('shows the empty state', async () => {
     const view = await mountView(MenuView, { props: { recipes: [] } })
-    expect(view.text()).toContain('Aucune recette à votre menu')
+    expect(view.text()).toContain('No recipes in your menu')
   })
 
   it('lists each planned recipe with its multiplier', async () => {
@@ -29,26 +29,26 @@ describe('MenuView', () => {
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
     const link = view.find('a[href="/r/guacamole"]')
 
-    expect(link.find('.sm\\:hidden').text()).toBe('Voir')
-    expect(link.find('.sm\\:inline').text()).toBe('Voir la recette')
-    expect(link.attributes('aria-label')).toBe('Voir la recette')
+    expect(link.find('.sm\\:hidden').text()).toBe('View')
+    expect(link.find('.sm\\:inline').text()).toBe('Open recipe')
+    expect(link.attributes('aria-label')).toBe('Open recipe')
   })
 
   it('counts the planned meals', async () => {
     const view = await mountView(MenuView, { props: { recipes: [] } })
-    expect(view.text()).toContain('0 repas prévu')
+    expect(view.text()).toContain('0 meals planned')
 
     list.addRecipe(makeRecipe(), 1)
     list.addRecipe(makeRecipe({ slug: 'soup', title: 'Soup' }), 1)
     const planned = await mountView(MenuView, { props: { recipes: [] } })
-    expect(planned.text()).toContain('2 repas prévus')
+    expect(planned.text()).toContain('2 meals planned')
   })
 
   it('flags a recipe that has left the source repository', async () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(MenuView, { props: { recipes: [] } })
 
-    expect(view.text()).toContain('n’est plus présente dans le dépôt source')
+    expect(view.text()).toContain('is no longer present in the source repository')
     expect(view.find('a[href="/r/guacamole"]').exists()).toBe(false)
   })
 
@@ -63,7 +63,7 @@ describe('MenuView', () => {
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
     await clearAll(view).trigger('click')
-    expect(window.confirm).toHaveBeenCalledWith('Effacer tout le menu et la liste de courses ?')
+    expect(window.confirm).toHaveBeenCalledWith('Clear the whole menu and the shopping list?')
     expect(list.state.menu).toEqual([])
     expect(list.shoppingList.value).toEqual([])
   })
@@ -83,7 +83,7 @@ describe('MenuView', () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
-    await view.findAll('button').find(b => b.text() === 'Retirer').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Remove').trigger('click')
 
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('Guacamole'))
     expect(list.state.menu).toEqual([])
@@ -95,7 +95,7 @@ describe('MenuView', () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
-    await view.findAll('button').find(b => b.text() === 'Retirer').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Remove').trigger('click')
     expect(list.state.menu).toHaveLength(1)
   })
 })

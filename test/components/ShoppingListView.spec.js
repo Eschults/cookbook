@@ -36,7 +36,7 @@ beforeEach(() => list.clearList())
 describe('ShoppingListView', () => {
   it('shows the empty state', async () => {
     const view = await mountView(ShoppingListView)
-    expect(view.text()).toContain('Votre panier est vide')
+    expect(view.text()).toContain('Your cart is empty')
   })
 
   it('lists every ingredient as one flat list', async () => {
@@ -51,8 +51,8 @@ describe('ShoppingListView', () => {
   it('counts what is left against the total', async () => {
     await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
-    expect(view.text()).toContain('3 restants')
-    expect(view.text()).toContain('3 au total')
+    expect(view.text()).toContain('3 remaining')
+    expect(view.text()).toContain('3 total')
   })
 
   it('checks an item off, and only once', async () => {
@@ -60,10 +60,10 @@ describe('ShoppingListView', () => {
     const view = await mountView(ShoppingListView)
 
     // The row handler must not fire as well, or the item would toggle back.
-    await view.find('[aria-label="Cocher l’article"]').trigger('click')
+    await view.find('[aria-label="Check item"]').trigger('click')
     expect(list.itemCount.value).toBe(2)
-    expect(view.text()).toContain('2 restants')
-    expect(view.find('[aria-label="Décocher l’article"]').exists()).toBe(true)
+    expect(view.text()).toContain('2 remaining')
+    expect(view.find('[aria-label="Uncheck item"]').exists()).toBe(true)
   })
 
   it('checks an item off by clicking anywhere on the row', async () => {
@@ -115,7 +115,7 @@ describe('ShoppingListView', () => {
 
   it('adds an item nobody cooked from, through the dialog', async () => {
     const view = await mountView(ShoppingListView)
-    await view.findAll('button').find(b => b.text() === 'Ajouter').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Add').trigger('click')
 
     await view.find('#extra-name').setValue('huile d’olive')
     await view.find('#extra-quantity').setValue('2 bouteilles')
@@ -129,16 +129,16 @@ describe('ShoppingListView', () => {
 
   it('offers the dialog from the empty state too', async () => {
     const view = await mountView(ShoppingListView)
-    expect(view.text()).toContain('Votre panier est vide')
+    expect(view.text()).toContain('Your cart is empty')
 
-    await view.findAll('button').find(b => b.text() === 'Ajouter').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Add').trigger('click')
     expect(view.find('#extra-name').exists()).toBe(true)
   })
 
   it('keeps the clear-all button off the phone header', async () => {
     await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
-    const clear = view.findAll('button').find(b => b.text() === 'Tout effacer')
+    const clear = view.findAll('button').find(b => b.text() === 'Clear all')
 
     expect(clear.classes()).toContain('hidden')
     expect(clear.classes()).toContain('sm:block')
@@ -209,9 +209,9 @@ describe('ShoppingListView', () => {
     await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
-    await view.findAll('button').find(b => b.text() === 'Tout effacer').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Clear all').trigger('click')
 
-    expect(confirm).toHaveBeenCalledWith('Effacer toute la liste de courses ?')
+    expect(confirm).toHaveBeenCalledWith('Clear the whole shopping list?')
     expect(list.shoppingList.value).toHaveLength(0)
   })
 
@@ -220,14 +220,14 @@ describe('ShoppingListView', () => {
     await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
 
-    await view.findAll('button').find(b => b.text() === 'Tout effacer').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Clear all').trigger('click')
     expect(list.shoppingList.value).toHaveLength(3)
   })
 
   it('scales the displayed quantity by the multiplier', async () => {
     await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 0.5, 'g')] }), 3)
     const view = await mountView(ShoppingListView)
-    expect(view.text()).toContain('1,5 g')
+    expect(view.text()).toContain('1.5 g')
   })
 
   it('hides the quantity for spoon- and pinch-based units', async () => {
@@ -241,7 +241,7 @@ describe('ShoppingListView', () => {
     }), 1)
     const view = await mountView(ShoppingListView)
 
-    expect(view.text()).not.toContain('0,5')
+    expect(view.text()).not.toContain('0.5')
     expect(view.text()).not.toContain('teaspoon')
     expect(view.text()).not.toContain('cuillère')
     expect(view.text()).not.toContain('pincée')
@@ -252,7 +252,7 @@ describe('ShoppingListView', () => {
     await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 1200, 'g')] }), 1)
     const view = await mountView(ShoppingListView)
 
-    expect(view.text()).toContain('1,2 kg')
+    expect(view.text()).toContain('1.2 kg')
   })
 
   it('shows a liquid by volume, since that is how it is sold', async () => {
@@ -261,7 +261,7 @@ describe('ShoppingListView', () => {
     await addRecipe(makeRecipe({ ingredients: [ingredient('milk', 150, 'cl')] }), 1)
     const view = await mountView(ShoppingListView)
 
-    expect(view.text()).toContain('1,5 L')
+    expect(view.text()).toContain('1.5 L')
     expect(view.text()).not.toContain('kg')
   })
 
@@ -398,10 +398,10 @@ describe('ShoppingListView', () => {
   it('follows the active locale', async () => {
     await addRecipe(makeRecipe(), 1)
     const view = await mountView(ShoppingListView)
-    expect(view.text()).toContain('3 restants')
-
-    i18n.global.locale.value = 'en'
-    await view.vm.$nextTick()
     expect(view.text()).toContain('3 remaining')
+
+    i18n.global.locale.value = 'fr'
+    await view.vm.$nextTick()
+    expect(view.text()).toContain('3 restants')
   })
 })

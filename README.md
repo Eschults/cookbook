@@ -8,8 +8,9 @@ There is no backend. The app reads the recipe repository straight from the GitHu
 the browser, parses the RecipeMD documents client-side, and caches the result in
 `localStorage` until the repository's HEAD commit changes — or until the app itself is
 redeployed, since the cache is also stamped with the build's git commit and a cache left
-over from an older build is treated as empty. The UI is available in French (default) and
-English, and it can scale a recipe into a shopping list.
+over from an older build is treated as empty. The UI is available in English and French:
+English by default, French when the browser asks for it, and whichever you pick from the
+footer is remembered. It can also scale a recipe into a shopping list.
 
 The recipe cache is disposable: GitHub is the only source of truth for it, so it is safe
 to drop and re-fetch at any time. The meal plan and shopping list are a separate,

@@ -42,7 +42,7 @@ describe('App', () => {
 
   it('renders the navigation and the cache marker', async () => {
     const app = await mountApp()
-    expect(app.text()).toContain('Recettes')
+    expect(app.text()).toContain('Recipes')
     expect(app.text()).toContain('Menu')
     expect(app.text()).toContain('abc1234')
   })
@@ -69,10 +69,10 @@ describe('App', () => {
     github.getLatestSha.mockRejectedValueOnce(new Error('network down'))
     const app = await mountApp()
 
-    expect(app.text()).toContain('Impossible de charger les recettes')
+    expect(app.text()).toContain('Couldn’t load the recipes')
     expect(app.text()).toContain('network down')
 
-    await app.findAll('button').find(b => b.text() === 'Réessayer').trigger('click')
+    await app.findAll('button').find(b => b.text() === 'Try again').trigger('click')
     await flushPromises()
     expect(app.text()).toContain('Guacamole')
   })
@@ -94,14 +94,14 @@ describe('App', () => {
 
   it('switches locale from the footer and persists it', async () => {
     const app = await mountApp()
-    const en = app.findAll('button').find(b => b.text() === 'en')
+    const fr = app.findAll('button').find(b => b.text() === 'fr')
 
-    await en.trigger('click')
+    await fr.trigger('click')
     await flushPromises()
 
-    expect(app.text()).toContain('Recipes')
-    expect(localStorage.getItem('cookbook:locale:v1')).toBe('en')
-    expect(document.documentElement.lang).toBe('en')
+    expect(app.text()).toContain('Recettes')
+    expect(localStorage.getItem('cookbook:locale:v1')).toBe('fr')
+    expect(document.documentElement.lang).toBe('fr')
   })
 
   it('shows a badge once the shopping list has items', async () => {
@@ -112,12 +112,12 @@ describe('App', () => {
     list.addRecipe(makeRecipe(), 1)
     await app.vm.$nextTick()
 
-    expect(app.find('nav').text()).toMatch(/Liste\s*3/)
+    expect(app.find('nav').text()).toMatch(/List\s*3/)
     list.clearList()
   })
 
   it('navigates to the shopping list route', async () => {
     const app = await mountApp('/shopping-list')
-    expect(app.text()).toContain('Liste de courses')
+    expect(app.text()).toContain('Shopping list')
   })
 })

@@ -24,15 +24,15 @@
   </g>
 
   <text x="112" y="344" font-family="Inter" font-weight="900" font-size="104" letter-spacing="-3" fill="#020617">Cookbook</text>
-  <text x="112" y="406" font-family="Inter" font-weight="500" font-size="38" fill="#64748b">Recettes &amp; liste de courses</text>
+  <text x="112" y="406" font-family="Inter" font-weight="500" font-size="38" fill="#64748b">Recipes &amp; Shopping List</text>
 
   <g font-family="Inter" font-weight="700" font-size="24" fill="#475569">
-    <rect x="112" y="446" width="252" height="60" rx="30" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
-    <text x="238" y="484" text-anchor="middle">Recettes RecipeMD</text>
-    <rect x="380" y="446" width="266" height="60" rx="30" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
-    <text x="513" y="484" text-anchor="middle">Menu de la semaine</text>
-    <rect x="662" y="446" width="238" height="60" rx="30" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
-    <text x="781" y="484" text-anchor="middle">Liste de courses</text>
+    <rect x="112" y="446" width="240" height="60" rx="30" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="232" y="484" text-anchor="middle">RecipeMD recipes</text>
+    <rect x="368" y="446" width="252" height="60" rx="30" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="494" y="484" text-anchor="middle">Menu for the week</text>
+    <rect x="636" y="446" width="210" height="60" rx="30" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="741" y="484" text-anchor="middle">Shopping list</text>
   </g>
 
   <text x="1088" y="546" text-anchor="end" font-family="Inter" font-weight="700" font-size="26" letter-spacing="1" fill="#1d4ed8">cookbook.saunier.me</text>

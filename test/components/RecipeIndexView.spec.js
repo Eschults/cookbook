@@ -23,7 +23,7 @@ describe('RecipeIndexView', () => {
 
   it('shows the ingredient count per card', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
-    expect(view.text()).toContain('3 ingrédients')
+    expect(view.text()).toContain('3 ingredients')
   })
 
   it('filters by search text', async () => {
@@ -55,13 +55,13 @@ describe('RecipeIndexView', () => {
   it('filters by tag and offers every tag once, sorted', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
     const labels = view.findAll('button').map(button => button.text())
-    expect(labels).toEqual(['Toutes', 'dessert', 'sauce', 'vegan'])
+    expect(labels).toEqual(['All', 'dessert', 'sauce', 'vegan'])
 
     await view.findAll('button')[1].trigger('click')
     expect(view.text()).toContain('Tarte Tatin')
     expect(view.text()).not.toContain('Guacamole')
 
-    // "Toutes" clears the filter again.
+    // "All" clears the filter again.
     await view.findAll('button')[0].trigger('click')
     expect(view.text()).toContain('Guacamole')
   })
@@ -69,7 +69,7 @@ describe('RecipeIndexView', () => {
   it('shows the empty state when nothing matches', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
     await view.find('#recipe-search').setValue('zzzz')
-    expect(view.text()).toContain('Aucune recette trouvée')
+    expect(view.text()).toContain('No recipes found')
   })
 
   it('links each card to its recipe', async () => {
@@ -83,7 +83,7 @@ describe('RecipeIndexView', () => {
     const headings = view.findAll('h1')
 
     expect(headings).toHaveLength(1)
-    expect(headings[0].text()).toBe('Recettes')
+    expect(headings[0].text()).toBe('Recipes')
   })
 
   it('focuses the search field on load, on desktop', async () => {
@@ -124,10 +124,10 @@ describe('RecipeIndexView', () => {
 
   it('follows the active locale', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
-    expect(view.text()).toContain('3 ingrédients')
-
-    i18n.global.locale.value = 'en'
-    await view.vm.$nextTick()
     expect(view.text()).toContain('3 ingredients')
+
+    i18n.global.locale.value = 'fr'
+    await view.vm.$nextTick()
+    expect(view.text()).toContain('3 ingrédients')
   })
 })

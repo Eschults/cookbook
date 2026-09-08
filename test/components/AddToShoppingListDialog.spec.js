@@ -8,17 +8,17 @@ const inputs = view => view.findAll('input[type="number"]')
 describe('AddToShoppingListDialog', () => {
   it('states the serving count the recipe was written for', async () => {
     const view = await open(makeRecipe())
-    expect(view.text()).toContain('La recette est prévue pour 4 personnes.')
+    expect(view.text()).toContain('The recipe is written for 4 servings.')
   })
 
   it('uses the singular for a one-serving recipe', async () => {
     const view = await open(makeRecipe({ servings: 1 }))
-    expect(view.text()).toContain('La recette est prévue pour 1 personne.')
+    expect(view.text()).toContain('The recipe is written for 1 serving.')
   })
 
   it('offers only the multiplier when there is no serving count', async () => {
     const view = await open(makeRecipe({ servings: null }))
-    expect(view.text()).toContain('Cette recette n’indique pas de nombre de portions')
+    expect(view.text()).toContain('This recipe does not declare a serving count')
     expect(inputs(view)).toHaveLength(1)
   })
 
@@ -41,7 +41,7 @@ describe('AddToShoppingListDialog', () => {
   it('emits the multiplier on submit', async () => {
     const view = await open(makeRecipe())
     await inputs(view)[1].setValue(2)
-    await view.findAll('button').find(b => b.text() === 'Ajouter à la liste').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Add to list').trigger('click')
 
     expect(view.emitted('add')).toEqual([[2]])
   })
@@ -49,17 +49,17 @@ describe('AddToShoppingListDialog', () => {
   it('refuses a multiplier that is not a positive number', async () => {
     const view = await open(makeRecipe())
     await inputs(view)[1].setValue(0)
-    await view.findAll('button').find(b => b.text() === 'Ajouter à la liste').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Add to list').trigger('click')
 
     expect(view.emitted('add')).toBeUndefined()
   })
 
   it('cancels from the close button, the footer button and the backdrop', async () => {
     const view = await open(makeRecipe())
-    await view.find('[aria-label="Fermer"]').trigger('click')
+    await view.find('[aria-label="Close"]').trigger('click')
     expect(view.emitted('cancel')).toHaveLength(1)
 
-    await view.findAll('button').find(b => b.text() === 'Annuler').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Cancel').trigger('click')
     expect(view.emitted('cancel')).toHaveLength(2)
 
     await view.find('.fixed').trigger('click')

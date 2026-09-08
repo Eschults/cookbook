@@ -144,7 +144,7 @@ describe('failure handling', () => {
     const { error, refresh } = useRecipes()
     await refresh()
 
-    expect(error.value).toBe('Erreur inconnue')
+    expect(error.value).toBe('Unknown error')
   })
 })
 

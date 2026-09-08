@@ -67,7 +67,7 @@ describe('AddShoppingItemDialog', () => {
     await add(view, 'pain', 'quelques')
 
     expect(view.emitted('add')).toBeUndefined()
-    expect(view.text()).toContain('Commencez la quantité par un nombre')
+    expect(view.text()).toContain('Start the quantity with a number')
   })
 
   it('clears the complaint as soon as the quantity is edited again', async () => {
@@ -75,8 +75,8 @@ describe('AddShoppingItemDialog', () => {
     await add(view, 'pain', 'quelques')
     await quantityField(view).setValue('2')
 
-    expect(view.text()).not.toContain('Commencez la quantité par un nombre')
-    expect(view.text()).toContain('Un nombre, ou un nombre et une unité')
+    expect(view.text()).not.toContain('Start the quantity with a number')
+    expect(view.text()).toContain('A number, or a number and a unit')
   })
 
   it('will not submit without a name', async () => {
@@ -88,10 +88,10 @@ describe('AddShoppingItemDialog', () => {
 
   it('cancels from the close button, the footer button and the backdrop', async () => {
     const view = await open()
-    await view.find('[aria-label="Fermer"]').trigger('click')
+    await view.find('[aria-label="Close"]').trigger('click')
     expect(view.emitted('cancel')).toHaveLength(1)
 
-    await view.findAll('button').find(b => b.text() === 'Annuler').trigger('click')
+    await view.findAll('button').find(b => b.text() === 'Cancel').trigger('click')
     expect(view.emitted('cancel')).toHaveLength(2)
 
     await view.find('.fixed').trigger('click')

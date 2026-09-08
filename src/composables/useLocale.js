@@ -10,9 +10,12 @@ const locale = i18n.global.locale
 const collator = computed(() => new Intl.Collator(locale.value, { sensitivity: 'base' }))
 
 function setLocale(value) {
-  if (!LOCALES.includes(value) || value === locale.value) return
-  locale.value = value
+  if (!LOCALES.includes(value)) return
+  // Stored even when it is already the active locale: picking the language the
+  // browser happened to hand you is still a choice, and only a stored one
+  // survives that browser later asking for something else.
   saveLocale(value)
+  locale.value = value
 }
 
 // Module scope on purpose: the document tracks the locale from first import,
