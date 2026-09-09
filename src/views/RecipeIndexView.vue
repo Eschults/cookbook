@@ -81,20 +81,21 @@ function pillClass(selected) {
          answers whatever filter is set below it. -->
     <p class="mb-4 text-sm text-slate-500">{{ t('index.count', { n: filtered.length }) }}</p>
 
-    <!-- Search leads on a phone, where it is the thing you reach for; on a
-         wider screen it moves to the right and the tags take the row. -->
+    <!-- No `order-*` here on purpose: tab order follows the DOM, so reordering
+         one breakpoint visually would send focus backwards on that one. Tags
+         first reads the same stacked on a phone as it does in a row. -->
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-      <div class="w-full sm:order-2 sm:ml-auto sm:max-w-xs">
-        <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
-        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-base outline-none sm:text-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
-      </div>
-
       <!-- A segmented track rather than seven outlined chips: the tags are one
            control with one answer, and the shared border says so without
            drawing one round each option. -->
-      <div v-if="tags.length" role="group" :aria-label="t('index.filterLabel')" class="inline-flex flex-wrap gap-0.5 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:order-1">
+      <div v-if="tags.length" role="group" :aria-label="t('index.filterLabel')" class="inline-flex flex-wrap gap-0.5 rounded-lg border border-slate-200 bg-slate-50 p-1">
         <button @click="tag = ''" :aria-pressed="!tag" :class="pillClass(!tag)">{{ t('index.all') }}</button>
         <button v-for="item in tags" :key="item" @click="tag = item" :aria-pressed="tag === item" :class="pillClass(tag === item)">{{ item }}</button>
+      </div>
+
+      <div class="w-full sm:ml-auto sm:max-w-xs">
+        <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
+        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-base outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 sm:text-sm" />
       </div>
     </div>
 
