@@ -15,7 +15,7 @@ const { t } = useI18n()
 const route = useRoute()
 
 /** This app's own source, as opposed to `repositoryUrl`, which points at the recipe data. */
-const cookbookRepositoryUrl = 'https://github.com/ssaunier/cookbook'
+const cookbookRepositoryUrl = 'https://github.com/Eschults/cookbook'
 
 /**
  * The three top-level destinations and the counter each one carries. The
