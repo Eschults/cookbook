@@ -57,31 +57,54 @@ onMounted(() => {
   window.addEventListener('keydown', focusOnSlash)
 })
 onUnmounted(() => window.removeEventListener('keydown', focusOnSlash))
+
+// "All" and the tags are the same control in two flavours, so they share one
+// class list. The selected one is a white chip lifted off the track: the only
+// shadow left in the app, because here it is doing work rather than decorating
+// — it is what makes the chip read as sitting on top of the group.
+function pillClass(selected) {
+  return [
+    'rounded-md px-2.5 py-1 text-sm transition-colors',
+    selected ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+  ]
+}
 </script>
 
 <template>
   <section>
-    <div class="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-      <!-- Shares the nav label on purpose: one string, one translation. -->
-      <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('nav.recipes') }}</h1>
-      <div class="w-full sm:max-w-sm">
-        <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
-        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none ring-teal-200 transition focus:ring-4" />
-      </div>
-    </div>
+    <!-- Shares the nav label on purpose: one string, one translation. The nav
+         already names the page on screen, so the heading is here for the
+         document outline and screen readers rather than to be read twice. -->
+    <h1 class="sr-only">{{ t('nav.recipes') }}</h1>
 
-    <div v-if="tags.length" class="mb-6 flex flex-wrap gap-2">
-      <button @click="tag = ''" :class="['rounded-full px-3 py-1.5 text-sm font-semibold', !tag ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900']">{{ t('index.all') }}</button>
-      <button v-for="item in tags" :key="item" @click="tag = item" :class="['rounded-full px-3 py-1.5 text-sm font-semibold', tag === item ? 'bg-teal-600 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900']">{{ item }}</button>
+    <!-- Counts what is on screen rather than what the cookbook holds, so it
+         answers whatever filter is set below it. -->
+    <p class="mb-4 text-sm text-slate-500">{{ t('index.count', { n: filtered.length }) }}</p>
+
+    <!-- Search leads on a phone, where it is the thing you reach for; on a
+         wider screen it moves to the right and the tags take the row. -->
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      <div class="w-full sm:order-2 sm:ml-auto sm:max-w-xs">
+        <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
+        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-base outline-none sm:text-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
+      </div>
+
+      <!-- A segmented track rather than seven outlined chips: the tags are one
+           control with one answer, and the shared border says so without
+           drawing one round each option. -->
+      <div v-if="tags.length" role="group" :aria-label="t('index.filterLabel')" class="inline-flex flex-wrap gap-0.5 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:order-1">
+        <button @click="tag = ''" :aria-pressed="!tag" :class="pillClass(!tag)">{{ t('index.all') }}</button>
+        <button v-for="item in tags" :key="item" @click="tag = item" :aria-pressed="tag === item" :class="pillClass(tag === item)">{{ item }}</button>
+      </div>
     </div>
 
     <div v-if="filtered.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <RecipeCard v-for="recipe in filtered" :key="recipe.slug" :recipe="recipe" />
     </div>
 
-    <div v-else class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-      <div class="text-4xl">🔎</div>
-      <h2 class="mt-4 font-bold text-slate-900">{{ t('index.emptyTitle') }}</h2>
+    <div v-else class="rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center">
+      <div class="text-2xl">🔎</div>
+      <h2 class="mt-3 text-sm font-semibold text-slate-900">{{ t('index.emptyTitle') }}</h2>
       <p class="mt-1 text-sm text-slate-500">{{ t('index.emptyHint') }}</p>
     </div>
   </section>

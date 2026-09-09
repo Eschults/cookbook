@@ -47,33 +47,33 @@ function submit() {
 
 <template>
   <div class="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" @click.self="$emit('cancel')">
-    <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+    <div class="w-full max-w-md rounded-lg bg-white p-5 ring-1 ring-slate-200">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-600">{{ t('common.shoppingList') }}</p>
-          <h2 class="mt-1 text-2xl font-black text-slate-950">{{ t('dialog.scale', { title: recipe.title }) }}</h2>
+          <p class="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{{ t('common.shoppingList') }}</p>
+          <h2 class="mt-1 text-lg font-semibold text-slate-900">{{ t('dialog.scale', { title: recipe.title }) }}</h2>
         </div>
-        <button @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
+        <button @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
       </div>
 
-      <p class="mt-4 text-sm leading-6 text-slate-500">
+      <p class="mt-3 text-sm leading-6 text-slate-500">
         {{ hasServings ? t('dialog.servingsKnown', { n: recipe.servings }) : t('dialog.servingsUnknown') }}
       </p>
 
       <div v-if="hasServings" class="mt-5">
-        <label class="text-sm font-bold text-slate-700">{{ t('dialog.people') }}</label>
-        <input v-model.number="servings" @input="syncMultiplier" min="0.1" step="0.5" type="number" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" />
+        <label class="text-sm font-medium text-slate-600">{{ t('dialog.people') }}</label>
+        <input v-model.number="servings" @input="syncMultiplier" min="0.1" step="0.5" type="number" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-base font-medium outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
       </div>
 
       <div class="mt-5">
-        <label class="text-sm font-bold text-slate-700">{{ t('dialog.multiplier') }}</label>
-        <input v-model.number="multiplier" @input="syncServings" min="0.01" step="0.25" type="number" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" />
+        <label class="text-sm font-medium text-slate-600">{{ t('dialog.multiplier') }}</label>
+        <input v-model.number="multiplier" @input="syncServings" min="0.01" step="0.25" type="number" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-base font-medium outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
         <p class="mt-2 text-xs text-slate-400">{{ example }}</p>
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
-        <button @click="$emit('cancel')" class="rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100">{{ t('common.cancel') }}</button>
-        <button @click="submit" class="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-black text-white hover:bg-teal-500">{{ t('dialog.add') }}</button>
+        <button @click="$emit('cancel')" class="rounded-md px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100">{{ t('common.cancel') }}</button>
+        <button @click="submit" class="rounded-md border border-sky-200 bg-sky-150 px-4 py-2 text-sm font-medium text-sky-800 hover:border-sky-300 hover:bg-sky-200">{{ t('dialog.add') }}</button>
       </div>
     </div>
   </div>

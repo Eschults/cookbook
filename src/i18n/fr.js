@@ -11,7 +11,6 @@ export default {
 
   app: {
     title: 'Cookbook',
-    tagline: 'Recettes & liste de courses',
     loading: 'Chargement des recettes…',
     loadingHint: 'Recherche de la dernière version sur GitHub.',
     errorTitle: 'Impossible de charger les recettes',
@@ -29,9 +28,11 @@ export default {
   },
 
   index: {
+    count: '{n} recette | {n} recettes',
     searchLabel: 'Rechercher des recettes',
     searchPlaceholder: 'Rechercher des recettes…',
     all: 'Toutes',
+    filterLabel: 'Filtrer par catégorie',
     ingredients: '{n} ingrédient | {n} ingrédients',
     viewRecipe: 'Voir la recette',
     emptyTitle: 'Aucune recette trouvée',

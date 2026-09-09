@@ -21,6 +21,14 @@ describe('RecipeIndexView', () => {
     expect(view.text()).toContain('Tarte Tatin')
   })
 
+  it('counts what the filter leaves on screen', async () => {
+    const view = await mountView(RecipeIndexView, { props: { recipes } })
+    expect(view.text()).toContain('2 recipes')
+
+    await view.find('#recipe-search').setValue('tatin')
+    expect(view.text()).toContain('1 recipe')
+  })
+
   it('shows the ingredient count per card', async () => {
     const view = await mountView(RecipeIndexView, { props: { recipes } })
     expect(view.text()).toContain('3 ingredients')

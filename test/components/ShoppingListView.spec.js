@@ -149,7 +149,7 @@ describe('ShoppingListView', () => {
     const view = await mountView(ShoppingListView)
     const flour = view.find('li')
 
-    expect(flour.find('span.font-bold').text()).toBe('Flour')
+    expect(flour.find('span.font-medium').text()).toBe('Flour')
     expect(flour.find('span.text-slate-500').text()).toBe('200 g')
   })
 
@@ -157,20 +157,20 @@ describe('ShoppingListView', () => {
     await addRecipe(makeRecipe({ ingredients: [ingredient('zucchini', 3)] }), 1)
     const view = await mountView(ShoppingListView)
 
-    expect(view.find('li span.font-bold').text()).toBe('Zucchinis')
+    expect(view.find('li span.font-medium').text()).toBe('Zucchinis')
   })
 
   it('does not pluralize a count that carries a unit', async () => {
     await addRecipe(makeRecipe({ ingredients: [ingredient('flour', 200, 'g')] }), 1)
     const view = await mountView(ShoppingListView)
 
-    expect(view.find('li span.font-bold').text()).toBe('Flour')
+    expect(view.find('li span.font-medium').text()).toBe('Flour')
   })
 
   it('orders each group alphabetically by ingredient name', async () => {
     await addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     const view = await mountView(ShoppingListView)
-    const names = view.findAll('li span.font-bold').map(node => node.text())
+    const names = view.findAll('li span.font-medium').map(node => node.text())
 
     expect(names).toEqual(['Ails', 'Échalote', 'Zucchinis'])
   })
@@ -179,12 +179,12 @@ describe('ShoppingListView', () => {
     await addRecipe(makeRecipe({ ingredients: greengrocer }), 1)
     list.toggleItem(list.shoppingList.value.find(item => item.name === 'zucchini').id)
     const view = await mountView(ShoppingListView)
-    const names = view.findAll('li span.font-bold').map(node => node.text())
+    const names = view.findAll('li span.font-medium').map(node => node.text())
 
     expect(names).toEqual(['Ails', 'Échalote', 'Zucchinis'])
 
     await view.find('li > div').trigger('click')
-    const reordered = view.findAll('li span.font-bold').map(node => node.text())
+    const reordered = view.findAll('li span.font-medium').map(node => node.text())
     expect(reordered).toEqual(['Échalote', 'Ails', 'Zucchinis'])
   })
 
@@ -198,7 +198,7 @@ describe('ShoppingListView', () => {
     now.mockReturnValueOnce(2)
     list.toggleItem(list.shoppingList.value.find(item => item.name === 'ail').id)
     const view = await mountView(ShoppingListView)
-    const names = view.findAll('li span.font-bold').map(node => node.text())
+    const names = view.findAll('li span.font-medium').map(node => node.text())
 
     expect(names).toEqual(['Échalote', 'Ails', 'Zucchinis'])
   })

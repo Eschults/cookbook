@@ -8,6 +8,8 @@ const list = useShoppingList()
 beforeEach(() => list.clearList())
 
 const clearAll = view => view.findAll('button').find(button => button.text() === 'Clear all')
+// Icon-only: its accessible name is the only thing to find it by.
+const removeButton = view => view.findAll('button').find(button => button.attributes('aria-label') === 'Remove')
 
 describe('MenuView', () => {
   it('shows the empty state', async () => {
@@ -83,7 +85,7 @@ describe('MenuView', () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
-    await view.findAll('button').find(b => b.text() === 'Remove').trigger('click')
+    await removeButton(view).trigger('click')
 
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('Guacamole'))
     expect(list.state.menu).toEqual([])
@@ -95,7 +97,7 @@ describe('MenuView', () => {
     list.addRecipe(makeRecipe(), 1)
     const view = await mountView(MenuView, { props: { recipes: [makeRecipe()] } })
 
-    await view.findAll('button').find(b => b.text() === 'Remove').trigger('click')
+    await removeButton(view).trigger('click')
     expect(list.state.menu).toHaveLength(1)
   })
 })
