@@ -51,31 +51,31 @@ function submit() {
 
 <template>
   <div class="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" @click.self="$emit('cancel')">
-    <form @submit.prevent="submit" class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+    <form @submit.prevent="submit" class="w-full max-w-md rounded-lg bg-white p-5 ring-1 ring-slate-200">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-600">{{ t('common.shoppingList') }}</p>
-          <h2 class="mt-1 text-2xl font-black text-slate-950">{{ t('addItem.title') }}</h2>
+          <p class="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{{ t('common.shoppingList') }}</p>
+          <h2 class="mt-1 text-lg font-semibold text-slate-900">{{ t('addItem.title') }}</h2>
         </div>
-        <button type="button" @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
+        <button type="button" @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
       </div>
 
-      <p class="mt-4 text-sm leading-6 text-slate-500">{{ t('addItem.intro') }}</p>
+      <p class="mt-3 text-sm leading-6 text-slate-500">{{ t('addItem.intro') }}</p>
 
       <div class="mt-5">
-        <label for="extra-name" class="text-sm font-bold text-slate-700">{{ t('addItem.name') }}</label>
+        <label for="extra-name" class="text-sm font-medium text-slate-600">{{ t('addItem.name') }}</label>
         <input
           id="extra-name"
           ref="nameInput"
           v-model="name"
           type="text"
           :placeholder="t('addItem.namePlaceholder')"
-          class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
+          class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-base font-medium outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
         />
       </div>
 
       <div class="mt-5">
-        <label for="extra-quantity" class="text-sm font-bold text-slate-700">{{ t('addItem.quantity') }}</label>
+        <label for="extra-quantity" class="text-sm font-medium text-slate-600">{{ t('addItem.quantity') }}</label>
         <!-- Deliberately a text field, not a number one: "100 g" and "3
              bouteilles" are quantities a shopping list wants and a number
              input would refuse. -->
@@ -86,15 +86,15 @@ function submit() {
           type="text"
           inputmode="text"
           :aria-invalid="error ? 'true' : undefined"
-          :class="['mt-2 w-full rounded-2xl border px-4 py-3 text-lg font-bold outline-none focus:ring-4', error ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100']"
+          :class="['mt-2 w-full rounded-lg border px-3 py-2 text-base font-medium outline-none focus:ring-2', error ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-sky-500 focus:ring-sky-100']"
         />
-        <p v-if="error" class="mt-2 text-xs font-bold text-rose-600">{{ error }}</p>
+        <p v-if="error" class="mt-2 text-xs font-medium text-rose-600">{{ error }}</p>
         <p v-else class="mt-2 text-xs text-slate-400">{{ t('addItem.quantityHint') }}</p>
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
-        <button type="button" @click="$emit('cancel')" class="rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100">{{ t('common.cancel') }}</button>
-        <button type="submit" :disabled="!name.trim()" class="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-black text-white hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">{{ t('addItem.add') }}</button>
+        <button type="button" @click="$emit('cancel')" class="rounded-md px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100">{{ t('common.cancel') }}</button>
+        <button type="submit" :disabled="!name.trim()" class="rounded-md border border-sky-200 bg-sky-150 px-4 py-2 text-sm font-medium text-sky-800 hover:border-sky-300 hover:bg-sky-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-400">{{ t('addItem.add') }}</button>
       </div>
     </form>
   </div>

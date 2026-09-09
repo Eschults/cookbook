@@ -7,16 +7,13 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <RouterLink :to="`/r/${recipe.slug}`" class="group min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md">
-    <div class="mb-5 flex items-start justify-between gap-3">
-      <span class="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-700">{{ t('index.ingredients', { n: recipe.ingredients.length }) }}</span>
-      <span class="text-xl transition group-hover:rotate-6">🍽️</span>
+  <RouterLink :to="`/r/${recipe.slug}`" class="group min-w-0 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-slate-300">
+    <span class="inline-block rounded-md bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">{{ t('index.ingredients', { n: recipe.ingredients.length }) }}</span>
+    <h2 class="mt-3 text-base font-semibold text-slate-900">{{ recipe.title }}</h2>
+    <p v-if="recipe.description" class="mt-1 truncate text-sm leading-6 text-slate-500">{{ recipe.description }}</p>
+    <div v-if="recipe.tags?.length" class="mt-3 flex flex-wrap gap-x-2 gap-y-1">
+      <span v-for="item in recipe.tags.slice(0, 3)" :key="item" class="text-xs text-slate-400">#{{ item }}</span>
     </div>
-    <h2 class="text-xl font-black text-slate-900">{{ recipe.title }}</h2>
-    <p v-if="recipe.description" class="mt-2 truncate text-sm leading-6 text-slate-500">{{ recipe.description }}</p>
-    <div v-if="recipe.tags?.length" class="mt-4 flex flex-wrap gap-1.5">
-      <span v-for="item in recipe.tags.slice(0, 3)" :key="item" class="text-xs font-semibold text-slate-400">#{{ item }}</span>
-    </div>
-    <div class="mt-5 text-sm font-bold text-teal-600 group-hover:text-teal-700">{{ t('index.viewRecipe') }} →</div>
+    <div class="mt-4 text-sm font-medium text-slate-500 group-hover:text-slate-900">{{ t('index.viewRecipe') }} →</div>
   </RouterLink>
 </template>

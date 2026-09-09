@@ -1,6 +1,8 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import PlusIcon from '../components/PlusIcon.vue'
+import TrashIcon from '../components/TrashIcon.vue'
 import { useI18n } from 'vue-i18n'
 import { useShoppingList } from '../composables/useShoppingList.js'
 import { useLocale } from '../composables/useLocale.js'
@@ -126,35 +128,34 @@ function formatQuantity(item) {
 
 <template>
   <section>
-    <div class="mb-8">
-      <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('list.heading') }}</h1>
-      <!-- The counts and the actions share one line at every width, so the
-           header costs a phone two lines rather than three. `ml-auto` rather
-           than `justify-between` keeps the buttons on the right even when a
-           narrow screen forces them onto their own line. -->
-      <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <p class="text-slate-500">{{ t('list.remaining', { n: itemCount }) }} · {{ t('list.total', { n: totalCount }) }}</p>
-        <div class="ml-auto flex items-center gap-1">
-          <button @click="showAddDialog = true" class="rounded-xl px-3 py-2 text-sm font-bold text-teal-600 hover:bg-teal-50">{{ t('list.addItem') }}</button>
-          <!-- Wiping the whole list is a rare, destructive action that a phone
-               header has no room for: it stays a desktop affordance, where
-               swipe-to-delete is not available either. -->
-          <button v-if="shoppingList.length" @click="confirmClear" class="hidden rounded-xl px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50 sm:block">{{ t('common.clearAll') }}</button>
-        </div>
+    <!-- The nav names the page; this is for the document outline. -->
+    <h1 class="sr-only">{{ t('list.heading') }}</h1>
+
+    <!-- The counts and the actions share one line at every width. `ml-auto`
+         rather than `justify-between` keeps the buttons on the right even when
+         a narrow screen forces them onto their own line. -->
+    <div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <p class="text-sm text-slate-500">{{ t('list.remaining', { n: itemCount }) }} · {{ t('list.total', { n: totalCount }) }}</p>
+      <div class="ml-auto flex items-center gap-2">
+        <button @click="showAddDialog = true" class="inline-flex items-center gap-1.5 rounded-md border border-sky-200 bg-sky-150 px-3 py-1.5 text-sm font-medium text-sky-800 transition-colors hover:border-sky-300 hover:bg-sky-200"><PlusIcon class="size-4" />{{ t('list.addItem') }}</button>
+        <!-- Wiping the whole list is a rare, destructive action that a phone
+             header has no room for: it stays a desktop affordance, where
+             swipe-to-delete is not available either. -->
+        <button v-if="shoppingList.length" @click="confirmClear" class="hidden rounded-md border border-rose-200 bg-white px-3 py-1.5 text-sm font-medium text-rose-600 transition-colors hover:border-rose-300 hover:bg-rose-50 sm:block">{{ t('common.clearAll') }}</button>
       </div>
     </div>
 
-    <div v-if="!shoppingList.length" class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-      <div class="text-5xl">🛒</div>
-      <h2 class="mt-4 text-xl font-black text-slate-900">{{ t('list.emptyTitle') }}</h2>
-      <p class="mt-2 text-sm text-slate-500">{{ t('list.emptyHint') }}</p>
+    <div v-if="!shoppingList.length" class="rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center">
+      <div class="text-3xl">🛒</div>
+      <h2 class="mt-3 text-base font-semibold text-slate-900">{{ t('list.emptyTitle') }}</h2>
+      <p class="mt-1.5 text-sm text-slate-500">{{ t('list.emptyHint') }}</p>
       <div class="mt-5 flex flex-wrap justify-center gap-2">
-        <RouterLink to="/" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white">{{ t('common.browseRecipes') }}</RouterLink>
-        <button @click="showAddDialog = true" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">{{ t('list.addItem') }}</button>
+        <RouterLink to="/" class="inline-flex items-center gap-1.5 rounded-md border border-sky-200 bg-sky-150 px-3 py-1.5 text-sm font-medium text-sky-800 transition-colors hover:border-sky-300 hover:bg-sky-200">{{ t('common.browseRecipes') }}</RouterLink>
+        <button @click="showAddDialog = true" class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"><PlusIcon class="size-4" />{{ t('list.addItem') }}</button>
       </div>
     </div>
 
-    <div v-else class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <div v-else class="overflow-hidden rounded-lg border border-slate-200 bg-white">
       <TransitionGroup tag="ul" name="reorder" class="divide-y divide-slate-100">
         <li v-for="item in sortedItems" :key="item.id" class="relative overflow-hidden">
           <!-- Slides in from the right on top of the row rather than pushing
@@ -165,7 +166,7 @@ function formatQuantity(item) {
                action, so unlike the desktop button this skips window.confirm. -->
           <button
             @click="removeItem(item.id)"
-            :class="['absolute inset-y-0 right-0 z-10 flex w-20 items-center justify-center bg-rose-600 text-sm font-bold text-white shadow-lg sm:hidden', swipe.id === item.id ? '' : 'transition-transform duration-200']"
+            :class="['absolute inset-y-0 right-0 z-10 flex w-20 items-center justify-center bg-rose-600 text-sm font-medium text-white sm:hidden', swipe.id === item.id ? '' : 'transition-transform duration-200']"
             :style="{ transform: `translateX(${REVEAL_WIDTH + rowOffset(item)}px)` }"
           >{{ t('common.remove') }}</button>
 
@@ -174,18 +175,18 @@ function formatQuantity(item) {
             @touchstart="onTouchStart(item, $event)"
             @touchmove="onTouchMove(item, $event)"
             @touchend="onTouchEnd(item)"
-            class="flex cursor-pointer items-center gap-3 bg-white px-5 py-2.5 hover:bg-slate-50"
+            class="flex cursor-pointer items-center gap-3 bg-white px-4 py-2.5 hover:bg-slate-50"
           >
-            <button @click.stop="toggleItem(item.id)" :aria-label="item.checked ? t('list.uncheck') : t('list.check')" :class="['grid size-6 shrink-0 place-items-center rounded-lg border-2 transition', item.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white hover:border-teal-400']">
+            <button @click.stop="toggleItem(item.id)" :aria-label="item.checked ? t('list.uncheck') : t('list.check')" :class="['grid size-5 shrink-0 place-items-center rounded border-2 transition-colors', item.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white hover:border-sky-400']">
               <span v-if="item.checked">✓</span>
             </button>
             <!-- One line per item: which recipe it came from is not something
                  you act on while walking round a shop. -->
             <div :class="['min-w-0 flex-1', item.checked ? 'text-slate-400 line-through' : 'text-slate-900']">
-              <span class="font-bold">{{ displayName(item) }}</span>
-              <span v-if="formatQuantity(item)" class="ml-2 text-slate-500">{{ formatQuantity(item) }}</span>
+              <span class="text-sm font-medium">{{ displayName(item) }}</span>
+              <span v-if="formatQuantity(item)" class="ml-2 text-sm text-slate-500">{{ formatQuantity(item) }}</span>
             </div>
-            <button @click.stop="confirmRemove(item)" class="hidden shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 hover:bg-rose-50 hover:text-rose-500 sm:inline-block">{{ t('common.remove') }}</button>
+            <button @click.stop="confirmRemove(item)" :aria-label="t('common.remove')" :title="t('common.remove')" class="hidden shrink-0 rounded-md border border-rose-200 p-1.5 text-rose-500 transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 sm:inline-block"><TrashIcon class="size-4" /></button>
           </div>
         </li>
       </TransitionGroup>

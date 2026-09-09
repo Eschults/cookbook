@@ -47,22 +47,12 @@ describe('App', () => {
     expect(app.text()).toContain('abc1234')
   })
 
-  it('shows the recipe count in the nav, in grey rather than the counter teal', async () => {
-    const app = await mountApp()
-    const badge = app.find('nav a[href="/"] span')
-
-    expect(badge.text()).toBe('1')
-    expect(badge.classes()).toContain('text-slate-400')
-    expect(badge.classes()).not.toContain('text-teal-600')
-  })
-
-  it('keeps only the brand mark in the header on a narrow screen', async () => {
+  it('names the brand link, since its mark carries no text', async () => {
     const app = await mountApp()
     const brand = app.find('header a[href="/"]')
 
+    expect(brand.find('svg').exists()).toBe(true)
     expect(brand.attributes('aria-label')).toBe('Cookbook')
-    // The wordmark is hidden below the `sm` breakpoint so the counters fit.
-    expect(brand.find('div.hidden.sm\\:block').text()).toContain('Cookbook')
   })
 
   it('shows an error banner and can retry', async () => {
@@ -102,18 +92,6 @@ describe('App', () => {
     expect(app.text()).toContain('Recettes')
     expect(localStorage.getItem('cookbook:locale:v1')).toBe('fr')
     expect(document.documentElement.lang).toBe('fr')
-  })
-
-  it('shows a badge once the shopping list has items', async () => {
-    const app = await mountApp()
-    const { useShoppingList } = await import('../../src/composables/useShoppingList.js')
-    const list = useShoppingList()
-    list.clearList()
-    list.addRecipe(makeRecipe(), 1)
-    await app.vm.$nextTick()
-
-    expect(app.find('nav').text()).toMatch(/List\s*3/)
-    list.clearList()
   })
 
   it('navigates to the shopping list route', async () => {

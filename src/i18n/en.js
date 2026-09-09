@@ -11,7 +11,6 @@ export default {
 
   app: {
     title: 'Cookbook',
-    tagline: 'Recipes & Shopping List',
     loading: 'Loading recipes…',
     loadingHint: 'Checking GitHub for the latest cookbook.',
     errorTitle: 'Couldn’t load the recipes',
@@ -29,9 +28,11 @@ export default {
   },
 
   index: {
+    count: '{n} recipe | {n} recipes',
     searchLabel: 'Search recipes',
     searchPlaceholder: 'Search recipes…',
     all: 'All',
+    filterLabel: 'Filter by tag',
     ingredients: '{n} ingredient | {n} ingredients',
     viewRecipe: 'View recipe',
     emptyTitle: 'No recipes found',
