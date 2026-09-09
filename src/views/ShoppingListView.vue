@@ -2,6 +2,7 @@
 import { computed, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import PlusIcon from '../components/PlusIcon.vue'
+import CheckIcon from '../components/CheckIcon.vue'
 import TrashIcon from '../components/TrashIcon.vue'
 import { useI18n } from 'vue-i18n'
 import { useShoppingList } from '../composables/useShoppingList.js'
@@ -178,7 +179,7 @@ function formatQuantity(item) {
             class="flex cursor-pointer items-center gap-3 bg-white px-4 py-2.5 hover:bg-slate-50"
           >
             <button @click.stop="toggleItem(item.id)" :aria-label="item.checked ? t('list.uncheck') : t('list.check')" :class="['grid size-5 shrink-0 place-items-center rounded border-2 transition-colors', item.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white hover:border-sky-400']">
-              <span v-if="item.checked">✓</span>
+              <CheckIcon v-if="item.checked" class="size-3" />
             </button>
             <!-- One line per item: which recipe it came from is not something
                  you act on while walking round a shop. -->

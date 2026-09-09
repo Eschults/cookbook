@@ -54,7 +54,7 @@ function submit() {
     <form @submit.prevent="submit" class="w-full max-w-md rounded-lg bg-white p-5 ring-1 ring-slate-200">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{{ t('common.shoppingList') }}</p>
+          <p class="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{{ t('common.shoppingList') }}</p>
           <h2 class="mt-1 text-lg font-semibold text-slate-900">{{ t('addItem.title') }}</h2>
         </div>
         <button type="button" @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
