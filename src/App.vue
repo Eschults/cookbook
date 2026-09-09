@@ -36,7 +36,7 @@ onMounted(() => refresh())
     <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <RouterLink to="/" :aria-label="t('app.title')" class="flex min-w-0 items-center gap-3">
-          <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-sm">
+          <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-teal-600 text-white shadow-sm">
             <BrandMark class="size-5" />
           </span>
           <!-- On a narrow screen the mark alone stands for the app, leaving the
@@ -53,7 +53,7 @@ onMounted(() => refresh())
             :key="tab.name"
             :to="tab.to"
             :class="['rounded-xl px-3 py-2 text-sm font-semibold', route.name === tab.name ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900']"
-          >{{ tab.label }} <span v-if="tab.count" :class="['ml-1', tab.muted ? 'text-slate-400' : 'text-blue-600']">{{ tab.count }}</span></RouterLink>
+          >{{ tab.label }} <span v-if="tab.count" :class="['ml-1', tab.muted ? 'text-slate-400' : 'text-teal-600']">{{ tab.count }}</span></RouterLink>
         </nav>
       </div>
     </header>
@@ -65,7 +65,7 @@ onMounted(() => refresh())
            top. Only the very first, cache-less load gets it. -->
       <div v-if="loading && !recipes.length" class="grid min-h-[50vh] place-items-center">
         <div class="text-center">
-          <div class="mx-auto mb-4 size-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+          <div class="mx-auto mb-4 size-10 animate-spin rounded-full border-4 border-slate-200 border-t-teal-600"></div>
           <p class="font-semibold text-slate-700">{{ t('app.loading') }}</p>
           <p class="mt-1 text-sm text-slate-400">{{ t('app.loadingHint') }}</p>
         </div>

@@ -45,7 +45,7 @@ function added(multiplier) {
     <RouterLink to="/" class="text-sm font-bold text-slate-400 hover:text-slate-700">← {{ t('recipe.back') }}</RouterLink>
 
     <article class="mt-5 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-      <header class="border-b border-slate-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 p-6 sm:p-10">
+      <header class="border-b border-slate-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-6 sm:p-10">
         <div class="flex flex-wrap gap-2">
           <span v-for="tag in recipe.tags" :key="tag" class="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">{{ tag }}</span>
         </div>
@@ -57,7 +57,7 @@ function added(multiplier) {
           <button @click="showDialog = true" class="hidden shrink-0 rounded-2xl bg-slate-950 px-5 py-3 font-bold text-white shadow-sm transition hover:bg-slate-800 sm:block">＋ {{ t('recipe.addToList') }}</button>
         </div>
         <p v-if="recipe.description" class="mt-3 max-w-2xl whitespace-pre-line text-lg leading-8 text-slate-600">{{ recipe.description }}</p>
-        <p v-if="recipe.yields.length" class="mt-4 text-sm font-bold uppercase tracking-[0.14em] text-blue-700">
+        <p v-if="recipe.yields.length" class="mt-4 text-sm font-bold uppercase tracking-[0.14em] text-teal-700">
           {{ t('recipe.makes', { yields: recipe.yields.map(item => item.label).join(' · ') }) }}
         </p>
         <button @click="showDialog = true" class="mt-7 rounded-2xl bg-slate-950 px-5 py-3 font-bold text-white shadow-sm transition hover:bg-slate-800 sm:hidden">＋ {{ t('recipe.addToList') }}</button>
@@ -73,10 +73,10 @@ function added(multiplier) {
             <ul class="divide-y divide-slate-100">
               <li v-for="(ingredient, index) in group.items" :key="index" class="py-3">
                 <div class="flex gap-3">
-                  <span class="mt-2 size-2 shrink-0 rounded-full bg-blue-500"></span>
+                  <span class="mt-2 size-2 shrink-0 rounded-full bg-teal-500"></span>
                   <div>
                     <span v-if="ingredient.quantity != null" class="font-bold text-slate-900">{{ formatAmount(ingredient.quantity, ingredient.unit) }}</span>
-                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></a>
+                    <a v-if="ingredient.link" :href="ingredient.link" target="_blank" rel="noreferrer" :class="['markdown font-medium text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-800', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></a>
                     <span v-else :class="['markdown font-medium text-slate-700', { 'ml-1': ingredient.quantity != null }]" v-html="renderInline(displayName(ingredient))"></span>
                   </div>
                 </div>
@@ -92,7 +92,7 @@ function added(multiplier) {
             <h3 v-if="group.title" class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{{ group.title }}</h3>
             <ol class="mt-3 space-y-4">
               <li v-for="(step, index) in group.steps" :key="index" class="flex gap-4">
-                <span class="grid size-8 shrink-0 place-items-center rounded-full bg-blue-100 text-sm font-black text-blue-800">{{ index + 1 }}</span>
+                <span class="grid size-8 shrink-0 place-items-center rounded-full bg-teal-100 text-sm font-black text-teal-800">{{ index + 1 }}</span>
                 <p class="markdown pt-1 font-medium leading-7 text-slate-700" v-html="renderInline(step)"></p>
               </li>
             </ol>
@@ -102,7 +102,7 @@ function added(multiplier) {
             <h3 class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{{ t('recipe.source', recipe.sources.length) }}</h3>
             <ul class="mt-2 space-y-1 text-sm">
               <li v-for="(source, index) in recipe.sources" :key="index">
-                <a v-if="source.url" :href="source.url" target="_blank" rel="noreferrer" class="text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800">{{ source.title }}</a>
+                <a v-if="source.url" :href="source.url" target="_blank" rel="noreferrer" class="text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-800">{{ source.title }}</a>
                 <span v-else class="text-slate-500">{{ source.title }}</span>
               </li>
             </ul>
@@ -116,6 +116,6 @@ function added(multiplier) {
 
   <div v-else class="py-20 text-center">
     <h1 class="text-2xl font-black">{{ t('recipe.notFound') }}</h1>
-    <RouterLink to="/" class="mt-3 inline-block font-bold text-blue-600">{{ t('recipe.backToRecipes') }}</RouterLink>
+    <RouterLink to="/" class="mt-3 inline-block font-bold text-teal-600">{{ t('recipe.backToRecipes') }}</RouterLink>
   </div>
 </template>

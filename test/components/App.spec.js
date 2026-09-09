@@ -47,13 +47,13 @@ describe('App', () => {
     expect(app.text()).toContain('abc1234')
   })
 
-  it('shows the recipe count in the nav, in grey rather than the counter blue', async () => {
+  it('shows the recipe count in the nav, in grey rather than the counter teal', async () => {
     const app = await mountApp()
     const badge = app.find('nav a[href="/"] span')
 
     expect(badge.text()).toBe('1')
     expect(badge.classes()).toContain('text-slate-400')
-    expect(badge.classes()).not.toContain('text-blue-600')
+    expect(badge.classes()).not.toContain('text-teal-600')
   })
 
   it('keeps only the brand mark in the header on a narrow screen', async () => {

@@ -135,7 +135,7 @@ function formatQuantity(item) {
       <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <p class="text-slate-500">{{ t('list.remaining', { n: itemCount }) }} · {{ t('list.total', { n: totalCount }) }}</p>
         <div class="ml-auto flex items-center gap-1">
-          <button @click="showAddDialog = true" class="rounded-xl px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50">{{ t('list.addItem') }}</button>
+          <button @click="showAddDialog = true" class="rounded-xl px-3 py-2 text-sm font-bold text-teal-600 hover:bg-teal-50">{{ t('list.addItem') }}</button>
           <!-- Wiping the whole list is a rare, destructive action that a phone
                header has no room for: it stays a desktop affordance, where
                swipe-to-delete is not available either. -->
@@ -176,7 +176,7 @@ function formatQuantity(item) {
             @touchend="onTouchEnd(item)"
             class="flex cursor-pointer items-center gap-3 bg-white px-5 py-2.5 hover:bg-slate-50"
           >
-            <button @click.stop="toggleItem(item.id)" :aria-label="item.checked ? t('list.uncheck') : t('list.check')" :class="['grid size-6 shrink-0 place-items-center rounded-lg border-2 transition', item.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white hover:border-blue-400']">
+            <button @click.stop="toggleItem(item.id)" :aria-label="item.checked ? t('list.uncheck') : t('list.check')" :class="['grid size-6 shrink-0 place-items-center rounded-lg border-2 transition', item.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white hover:border-teal-400']">
               <span v-if="item.checked">✓</span>
             </button>
             <!-- One line per item: which recipe it came from is not something

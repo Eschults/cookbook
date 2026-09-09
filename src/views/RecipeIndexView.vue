@@ -66,13 +66,13 @@ onUnmounted(() => window.removeEventListener('keydown', focusOnSlash))
       <h1 class="text-4xl font-black tracking-tight text-slate-950">{{ t('nav.recipes') }}</h1>
       <div class="w-full sm:max-w-sm">
         <label class="sr-only" for="recipe-search">{{ t('index.searchLabel') }}</label>
-        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-200 transition focus:ring-4" />
+        <input id="recipe-search" ref="searchInput" v-model="query" type="search" :placeholder="t('index.searchPlaceholder')" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none ring-teal-200 transition focus:ring-4" />
       </div>
     </div>
 
     <div v-if="tags.length" class="mb-6 flex flex-wrap gap-2">
       <button @click="tag = ''" :class="['rounded-full px-3 py-1.5 text-sm font-semibold', !tag ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900']">{{ t('index.all') }}</button>
-      <button v-for="item in tags" :key="item" @click="tag = item" :class="['rounded-full px-3 py-1.5 text-sm font-semibold', tag === item ? 'bg-blue-600 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900']">{{ item }}</button>
+      <button v-for="item in tags" :key="item" @click="tag = item" :class="['rounded-full px-3 py-1.5 text-sm font-semibold', tag === item ? 'bg-teal-600 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900']">{{ item }}</button>
     </div>
 
     <div v-if="filtered.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -50,7 +50,7 @@ function submit() {
     <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-blue-600">{{ t('common.shoppingList') }}</p>
+          <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-600">{{ t('common.shoppingList') }}</p>
           <h2 class="mt-1 text-2xl font-black text-slate-950">{{ t('dialog.scale', { title: recipe.title }) }}</h2>
         </div>
         <button @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
@@ -62,18 +62,18 @@ function submit() {
 
       <div v-if="hasServings" class="mt-5">
         <label class="text-sm font-bold text-slate-700">{{ t('dialog.people') }}</label>
-        <input v-model.number="servings" @input="syncMultiplier" min="0.1" step="0.5" type="number" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100" />
+        <input v-model.number="servings" @input="syncMultiplier" min="0.1" step="0.5" type="number" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" />
       </div>
 
       <div class="mt-5">
         <label class="text-sm font-bold text-slate-700">{{ t('dialog.multiplier') }}</label>
-        <input v-model.number="multiplier" @input="syncServings" min="0.01" step="0.25" type="number" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100" />
+        <input v-model.number="multiplier" @input="syncServings" min="0.01" step="0.25" type="number" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" />
         <p class="mt-2 text-xs text-slate-400">{{ example }}</p>
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
         <button @click="$emit('cancel')" class="rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100">{{ t('common.cancel') }}</button>
-        <button @click="submit" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-500">{{ t('dialog.add') }}</button>
+        <button @click="submit" class="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-black text-white hover:bg-teal-500">{{ t('dialog.add') }}</button>
       </div>
     </div>
   </div>

@@ -53,7 +53,7 @@ function confirmRemove(entry) {
           <div class="min-w-0 flex-1">
             <h2 class="flex items-center gap-2 truncate font-black text-slate-900">
               {{ entry.recipe?.title || entry.recipeId }}
-              <span class="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">×{{ formatMultiplier(entry.multiplier) }}</span>
+              <span class="shrink-0 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-bold text-teal-700">×{{ formatMultiplier(entry.multiplier) }}</span>
             </h2>
             <p v-if="entry.recipe?.description" class="mt-0.5 truncate text-sm text-slate-500">{{ entry.recipe.description }}</p>
             <p v-if="!entry.recipe" class="mt-0.5 text-xs text-rose-500">{{ t('menu.stale') }}</p>
@@ -61,7 +61,7 @@ function confirmRemove(entry) {
           <!-- The row already names the recipe, so on a phone the verb alone
                says everything the longer label does, and leaves the title
                room to breathe rather than truncating it further. -->
-          <RouterLink v-if="entry.recipe" :to="`/r/${entry.recipe.slug}`" :aria-label="t('menu.openRecipe')" class="shrink-0 text-sm font-black text-blue-600 hover:text-blue-700">
+          <RouterLink v-if="entry.recipe" :to="`/r/${entry.recipe.slug}`" :aria-label="t('menu.openRecipe')" class="shrink-0 text-sm font-black text-teal-600 hover:text-teal-700">
             <span class="sm:hidden">{{ t('menu.open') }}</span>
             <span class="hidden sm:inline">{{ t('menu.openRecipe') }}</span> →
           </RouterLink>

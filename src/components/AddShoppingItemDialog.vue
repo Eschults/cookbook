@@ -54,7 +54,7 @@ function submit() {
     <form @submit.prevent="submit" class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-blue-600">{{ t('common.shoppingList') }}</p>
+          <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-600">{{ t('common.shoppingList') }}</p>
           <h2 class="mt-1 text-2xl font-black text-slate-950">{{ t('addItem.title') }}</h2>
         </div>
         <button type="button" @click="$emit('cancel')" :aria-label="t('common.close')" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
@@ -70,7 +70,7 @@ function submit() {
           v-model="name"
           type="text"
           :placeholder="t('addItem.namePlaceholder')"
-          class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+          class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-bold outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
         />
       </div>
 
@@ -86,7 +86,7 @@ function submit() {
           type="text"
           inputmode="text"
           :aria-invalid="error ? 'true' : undefined"
-          :class="['mt-2 w-full rounded-2xl border px-4 py-3 text-lg font-bold outline-none focus:ring-4', error ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100']"
+          :class="['mt-2 w-full rounded-2xl border px-4 py-3 text-lg font-bold outline-none focus:ring-4', error ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100']"
         />
         <p v-if="error" class="mt-2 text-xs font-bold text-rose-600">{{ error }}</p>
         <p v-else class="mt-2 text-xs text-slate-400">{{ t('addItem.quantityHint') }}</p>
@@ -94,7 +94,7 @@ function submit() {
 
       <div class="mt-6 flex justify-end gap-2">
         <button type="button" @click="$emit('cancel')" class="rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100">{{ t('common.cancel') }}</button>
-        <button type="submit" :disabled="!name.trim()" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">{{ t('addItem.add') }}</button>
+        <button type="submit" :disabled="!name.trim()" class="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-black text-white hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">{{ t('addItem.add') }}</button>
       </div>
     </form>
   </div>
