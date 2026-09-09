@@ -18,8 +18,8 @@
     <use href="#book"/>
   </g>
 
-  <rect x="112" y="108" width="112" height="112" rx="30" fill="#0084d1"/>
-  <g transform="translate(140 136) scale(2.35)" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="113" y="109" width="110" height="110" rx="46" fill="#dff2fe" stroke="#b8e6fe" stroke-width="2"/>
+  <g transform="translate(140 136) scale(2.35)" fill="none" stroke="#00598a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
     <use href="#book"/>
   </g>
 
