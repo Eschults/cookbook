@@ -36,7 +36,7 @@ onMounted(() => refresh())
           <div class="rounded-2xl border border-sky-200 bg-sky-100 p-2 text-sky-800">
             <BrandMark class="size-5" />
           </div>
-          <span class="text-base font-black tracking-tight text-slate-900">{{ t('app.title') }}</span>
+          <span class="hidden text-base font-black tracking-tight text-slate-900 sm:inline">{{ t('app.title') }}</span>
         </RouterLink>
 
         <nav class="flex items-center gap-4 sm:gap-5">
