@@ -9,7 +9,7 @@
  * See README.md for the rest of the fork checklist (custom domain, base path).
  */
 export const recipesRepo = {
-  owner: 'ssaunier',
+  owner: 'Eschults',
   repo: 'recipes',
   branch: 'main',
 
