@@ -79,7 +79,7 @@ describe('App', () => {
 
   it('links the source repository from the footer', async () => {
     const app = await mountApp()
-    const link = app.findAll('a').find(a => a.attributes('href') === 'https://github.com/ssaunier/recipes')
+    const link = app.findAll('a').find(a => a.attributes('href') === 'https://github.com/Eschults/recipes')
 
     expect(link.attributes('rel')).toBe('noreferrer')
   })
@@ -88,7 +88,7 @@ describe('App', () => {
     const app = await mountApp()
     const link = app.findAll('a').find(a => a.text() === 'abc1234')
 
-    expect(link.attributes('href')).toBe('https://github.com/ssaunier/recipes/commit/abc1234def')
+    expect(link.attributes('href')).toBe('https://github.com/Eschults/recipes/commit/abc1234def')
     expect(link.attributes('target')).toBe('_blank')
   })
 
